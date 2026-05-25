@@ -1,2 +1,2 @@
 # morning-dust
-A magic mirror variant written on python
+A magic mirror variant written in python
