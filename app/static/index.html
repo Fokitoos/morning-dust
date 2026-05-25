@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Morning Dust</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <main class="dashboard">
+        <section class="widget weather" id="weather">
+            <div class="widget-label" id="weather-location">—</div>
+            <div class="widget-value" id="weather-temp">--°</div>
+            <div class="widget-condition" id="weather-condition">loading…</div>
+            <div class="widget-range">
+                <span class="range-item"><span class="range-arrow">↑</span><span id="weather-high">--°</span></span>
+                <span class="range-item"><span class="range-arrow">↓</span><span id="weather-low">--°</span></span>
+            </div>
+            <div class="widget-updated" id="weather-updated"></div>
+        </section>
+
+        <section class="widget clock" id="clock">
+            <div class="clock-time" id="clock-time">--:--</div>
+            <div class="clock-date" id="clock-date">—</div>
+        </section>
+
+        <section class="widget todo" id="todo">
+            <div class="widget-label">Today</div>
+            <ul class="todo-list" id="todo-list"></ul>
+            <form class="todo-form" id="todo-form">
+                <input type="text" id="todo-input" placeholder="add a task…" autocomplete="off">
+            </form>
+        </section>
+    </main>
+    <script src="/static/app.js"></script>
+</body>
+</html>

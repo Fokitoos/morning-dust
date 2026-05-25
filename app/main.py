@@ -1,8 +1,14 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.routers import commute, health, todo, weather
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 def create_app() -> FastAPI:
@@ -20,6 +26,12 @@ def create_app() -> FastAPI:
     app.include_router(weather.router, prefix="/api/weather", tags=["weather"])
     app.include_router(todo.router, prefix="/api/todo", tags=["todo"])
     app.include_router(commute.router, prefix="/api/commute", tags=["commute"])
+
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    @app.get("/", include_in_schema=False)
+    def _index() -> FileResponse:
+        return FileResponse(STATIC_DIR / "index.html")
 
     return app
 
