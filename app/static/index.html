@@ -23,6 +23,15 @@
         <section class="widget clock" id="clock">
             <div class="clock-time" id="clock-time">--:--</div>
             <div class="clock-date" id="clock-date">—</div>
+            <section class="commute" id="commute">
+                <div class="commute-header">
+                    <span class="widget-label">Commute</span>
+                    <button class="commute-refresh" id="commute-refresh" type="button" aria-label="refresh">↻</button>
+                </div>
+                <div class="commute-route" id="commute-route">— → —</div>
+                <div class="commute-duration" id="commute-duration">--</div>
+                <div class="commute-meta" id="commute-meta">not configured</div>
+            </section>
         </section>
 
         <section class="widget todo" id="todo">
@@ -31,6 +40,12 @@
             <form class="todo-form" id="todo-form">
                 <input type="text" id="todo-input" placeholder="add a task…" autocomplete="off">
             </form>
+        </section>
+
+        <section class="widget calendar" id="calendar">
+            <div class="widget-label">Upcoming</div>
+            <ul class="calendar-list" id="calendar-list"></ul>
+            <div class="calendar-empty" id="calendar-empty"></div>
         </section>
     </main>
     <script src="/static/app.js"></script>
