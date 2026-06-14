@@ -6,14 +6,14 @@ from app.services.todo_service import TodoService, get_todo_service
 router = APIRouter()
 
 
-@router.get("", response_model=TodoListResponse)
+@router.get("/{list_name}", response_model=TodoListResponse)
 def list_todos(
     service: TodoService = Depends(get_todo_service),
 ) -> TodoListResponse:
     return service.list()
 
 
-@router.post("", response_model=TodoItem, status_code=201)
+@router.post("/{list_name}", response_model=TodoItem, status_code=201)
 def create_todo(
     payload: TodoCreate,
     service: TodoService = Depends(get_todo_service),
@@ -21,7 +21,7 @@ def create_todo(
     return service.create(payload)
 
 
-@router.patch("/{todo_id}", response_model=TodoItem)
+@router.patch("/{list_name}/{todo_id}", response_model=TodoItem)
 def update_todo(
     todo_id: int,
     payload: TodoUpdate,
@@ -33,7 +33,7 @@ def update_todo(
     return updated
 
 
-@router.delete("/{todo_id}", status_code=204)
+@router.delete("/{list_name}/{todo_id}", status_code=204)
 def delete_todo(
     todo_id: int,
     service: TodoService = Depends(get_todo_service),

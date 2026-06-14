@@ -23,6 +23,9 @@ const els = {
     calendar: document.getElementById("calendar"),
     calendarList: document.getElementById("calendar-list"),
     calendarEmpty: document.getElementById("calendar-empty"),
+    taskList: document.getElementById("task-list"),
+    taskForm: document.getElementById("task-form"),
+    taskInput: document.getElementById("task-input"),
 };
 
 function formatTime(date) {
@@ -65,51 +68,19 @@ function tickClock() {
     els.clockDate.textContent = formatDate(now);
 }
 
-function renderTodos(items) {
-    els.todoList.replaceChildren();
-    for (const item of items) {
-        const li = document.createElement("li");
-        li.className = "todo-item" + (item.done ? " done" : "");
+const groceries = createTodoList({
+    listName: "groceries",
+    listEl: els.todoList,
+    formEl: els.todoForm,
+    inputEl: els.todoInput,
+});
 
-        const label = document.createElement("span");
-        label.className = "todo-check";
-        label.textContent = item.title;
-        label.addEventListener("click", () => toggleTodo(item));
-
-        const del = document.createElement("span");
-        del.className = "todo-delete";
-        del.textContent = "×";
-        del.addEventListener("click", () => deleteTodo(item.id));
-
-        li.append(label, del);
-        els.todoList.append(li);
-    }
-}
-
-async function refreshTodos() {
-    try {
-        const resp = await fetch("/api/todo", { cache: "no-store" });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
-        renderTodos(data.items);
-    } catch (err) {
-        /* leave existing list visible */
-    }
-}
-
-async function toggleTodo(item) {
-    await fetch(`/api/todo/${item.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ done: !item.done }),
-    });
-    refreshTodos();
-}
-
-async function deleteTodo(id) {
-    await fetch(`/api/todo/${id}`, { method: "DELETE" });
-    refreshTodos();
-}
+const tasks = createTodoList({
+    listName: "tasks",
+    listEl: els.taskList,
+    formEl: els.taskForm,
+    inputEl: els.taskInput,
+});
 
 function renderCommute(data) {
     els.commuteRoute.textContent = `${data.origin} → ${data.destination}`;
@@ -245,27 +216,17 @@ async function refreshCalendar() {
 
 els.commuteRefresh.addEventListener("click", triggerCommuteRefresh);
 
-els.todoForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const title = els.todoInput.value.trim();
-    if (!title) return;
-    els.todoInput.value = "";
-    await fetch("/api/todo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
-    });
-    refreshTodos();
-});
-
 tickClock();
 setInterval(tickClock, 1000);
 
 refreshWeather();
 setInterval(refreshWeather, REFRESH_MS);
 
-refreshTodos();
-setInterval(refreshTodos, TODO_REFRESH_MS);
+groceries.refresh();
+setInterval(groceries.refresh, TODO_REFRESH_MS);
+
+tasks.refresh();
+setInterval(tasks.refresh, TODO_REFRESH_MS);
 
 refreshCommute();
 setInterval(refreshCommute, 5 * 60_000);

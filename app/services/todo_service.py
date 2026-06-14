@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from fastapi import HTTPException
+
 from app.config import settings
 from app.schemas.todo import TodoCreate, TodoItem, TodoListResponse, TodoUpdate
 
@@ -52,5 +54,9 @@ class TodoService:
         return True
 
 
-def get_todo_service() -> TodoService:
-    return TodoService(Path(settings.todo_file_path))
+def get_todo_service(list_name: str) -> TodoService:
+    # Whitelist guards against path traversal via the {list_name} path param.
+    if list_name not in settings.todo_lists:
+        raise HTTPException(status_code=404, detail=f"Unknown list: {list_name}")
+    path = Path(settings.todo_dir) / f"todos-{list_name}.json"
+    return TodoService(path)

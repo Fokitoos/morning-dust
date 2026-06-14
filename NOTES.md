@@ -33,6 +33,24 @@ locked down — easier to exit during development, less hardened for production.
 - `.stale` CSS class is applied when a fetch fails — values dim, "offline"
   label is shown. Keeps the screen from looking frozen on a network blip.
 
+### Pages & navigation (pager)
+- The UI is a single page (`index.html`) with a horizontal **pager**: each
+  `.page` is a full-viewport slide, moved by translating `#pager`. Page 1 is
+  the dashboard grid, page 2 is Tasks. `pager.js` handles touch **swipe**
+  (horizontal-only, so vertical list scroll/taps still work), edge **arrow**
+  buttons, **dot** indicators, and ← / → keys for desktop dev.
+- Chosen over separate routes (`/tasks`) because a kiosk has no address bar —
+  swipe/buttons are the only sane navigation, and one page keeps all widgets'
+  poll loops alive in the background.
+
+### Todo lists (multiple)
+- One generic widget, many named lists. API is `/api/todo/{list}` with the
+  list name whitelisted server-side (`settings.todo_lists`, default
+  `groceries`, `tasks`) — guards path traversal and 404s unknown lists.
+- Each list persists to `data/todos-{list}.json`. `todo.js` exposes a
+  reusable `createTodoList({listName, listEl, formEl, inputEl})` used by both
+  the dashboard (groceries) and the tasks page.
+
 ## Ideas to Revisit
 
 ### Caching the weather response

@@ -24,7 +24,10 @@ class Settings(BaseSettings):
     weather_location_name: str = "Nieuwegein"
     weather_timeout_s: float = 5.0
 
-    todo_file_path: str = "data/todos.json"
+    # Each named list is persisted to {todo_dir}/todos-{name}.json. Only names
+    # in todo_lists are accepted by the API (whitelist guards path traversal).
+    todo_dir: str = "data"
+    todo_lists: Annotated[list[str], NoDecode] = ["groceries", "tasks"]
 
     commute_origin_lat: float | None = HOME_LAT
     commute_origin_lon: float | None = HOME_LON
@@ -46,12 +49,12 @@ class Settings(BaseSettings):
     calendar_max_events: int = 8
     calendar_timeout_s: float = 8.0
 
-    @field_validator("calendar_ics_urls", mode="before")
+    @field_validator("calendar_ics_urls", "todo_lists", mode="before")
     @classmethod
-    def _split_ics_urls(cls, v: object) -> object:
+    def _split_list(cls, v: object) -> object:
         # Allow a plain delimited string in .env instead of a JSON array.
         if isinstance(v, str):
-            return [u.strip() for u in re.split(r"[\s,]+", v) if u.strip()]
+            return [s.strip() for s in re.split(r"[\s,]+", v) if s.strip()]
         return v
 
 

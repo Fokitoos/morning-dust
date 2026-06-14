@@ -35,6 +35,15 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Single local kiosk: never cache. Avoids stale HTML/JS/CSS after an
+    # update silently breaking the dashboard (e.g. old app.js calling a
+    # since-changed API path).
+    @app.middleware("http")
+    async def _no_store(request, call_next):
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
     app.include_router(health.router)
     app.include_router(weather.router, prefix="/api/weather", tags=["weather"])
     app.include_router(todo.router, prefix="/api/todo", tags=["todo"])
