@@ -1,0 +1,21 @@
+[Unit]
+Description=Morning Dust dashboard (FastAPI)
+# Wait for the network so weather/commute/calendar fetches work right after boot.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fokito
+Group=fokito
+WorkingDirectory=/home/fokito/repos/morning-dust
+# Absolute path to uv — systemd does not load your login PATH.
+ExecStart=/home/fokito/.local/bin/uv run python main.py
+# Restart on crash; back off so a hard failure loop doesn't spin the CPU.
+Restart=on-failure
+RestartSec=5
+# Reads .env from WorkingDirectory; this just makes logs/encoding sane.
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
