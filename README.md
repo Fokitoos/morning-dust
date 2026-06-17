@@ -45,3 +45,37 @@ sudo systemctl disable --now morning-dust   # stop + remove from boot
 > `/home/fokito/repos/morning-dust`, edit `User=`, `WorkingDirectory=`, and the
 > `ExecStart=` uv path in `deploy/morning-dust.service` before installing.
 > Find your uv path with `which uv`.
+
+### Open Chromium to the dashboard on boot
+
+This opens a normal Chromium window (not kiosk) at the app URL after login.
+A graphical desktop must be running, so the Pi has to boot into the desktop
+with autologin (a console/`tty` boot has no display for Chromium to use).
+
+**1. Boot to the desktop, logged in automatically:**
+
+```bash
+sudo raspi-config nonint do_boot_behaviour B4   # Desktop Autologin
+```
+
+(Or interactively: `sudo raspi-config` → System Options → Boot / Auto Login →
+*Desktop Autologin*.)
+
+**2. Autostart the browser launcher.** `deploy/open-browser.sh` picks the right
+Chromium binary, waits for the app to answer on port 8000, then opens it
+maximized. Wire it into the desktop session's autostart:
+
+```bash
+mkdir -p ~/.config/autostart
+cp deploy/morning-dust-browser.desktop ~/.config/autostart/
+```
+
+On the Bookworm default desktop (labwc), if the XDG autostart above doesn't
+fire, add it to labwc's own autostart instead:
+
+```bash
+mkdir -p ~/.config/labwc
+echo '/home/fokito/repos/morning-dust/deploy/open-browser.sh &' >> ~/.config/labwc/autostart
+```
+
+Reboot to test: `sudo reboot`. Chromium should open on the dashboard.

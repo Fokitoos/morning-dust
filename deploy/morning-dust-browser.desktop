@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Morning Dust Browser
+Comment=Open the dashboard in Chromium at login
+Exec=/home/fokito/repos/morning-dust/deploy/open-browser.sh
+X-GNOME-Autostart-enabled=true
