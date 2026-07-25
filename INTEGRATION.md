@@ -32,11 +32,11 @@ uv run python main.py  # http://localhost:8000
 
 No new dependencies — `sqlite3` is in the standard library.
 
-The old `app/static/app.js`, `pager.js`, `todo.js` and `styles.css` are no
-longer referenced by `index.html`. Leave them in place until you're happy with
-morning-dust, then delete them. `/api/todo/{list_name}` (the JSON-file lists) is
-still mounted so nothing else breaks, and `GET /api/calendar` keeps its old
-shape.
+The old `app/static/app.js`, `pager.js`, `todo.js` and `styles.css` have been
+deleted — `index.html` is now the only file in `app/static/`. (Recover them
+from git history if you ever need them.) `/api/todo/{list_name}` (the
+JSON-file lists) is still mounted so nothing else breaks, and
+`GET /api/calendar` keeps its old shape.
 
 ## Endpoints morning-dust uses
 

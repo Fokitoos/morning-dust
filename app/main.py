@@ -38,8 +38,8 @@ def create_app() -> FastAPI:
     )
 
     # Single local kiosk: never cache. Avoids stale HTML/JS/CSS after an
-    # update silently breaking the dashboard (e.g. old app.js calling a
-    # since-changed API path).
+    # update silently breaking the dashboard (e.g. a cached index.html calling
+    # a since-changed API path).
     @app.middleware("http")
     async def _no_store(request, call_next):
         response = await call_next(request)

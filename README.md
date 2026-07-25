@@ -1,8 +1,25 @@
 # morning-dust
 
-A magic-mirror–style dashboard for a Raspberry Pi touchscreen, written in
-Python (FastAPI + vanilla HTML/CSS/JS). Shows weather, a clock, commute time,
-a calendar, and swipeable Groceries / Tasks lists.
+A magic-mirror–style family dashboard for a Raspberry Pi touchscreen: a
+FastAPI backend serving a single self-contained page, with six tabs.
+
+- **Today** — the weight curve, what's on today, open to-dos, a recipe
+  suggestion, recent notes, and the commute.
+- **Calendar** — a week view merging read-only ICS feeds with events you add
+  yourself. Imports `.ics` files.
+- **To-dos** — one shared list with optional due dates.
+- **Recipes** — a recipe book with photos, ingredients and steps.
+- **Notes** — a sticky-note board.
+- **Ermis** — a weight logbook with a chart.
+
+Weather and commute times are fetched from external APIs; everything else
+lives in one SQLite file on the Pi, so the kiosk, your phone and a laptop all
+see the same data. The browser keeps a `localStorage` copy purely as an
+offline fallback.
+
+The UI is one compiled `app/static/index.html` (React 18, loaded from unpkg).
+See [INTEGRATION.md](INTEGRATION.md) for the API surface and how that file is
+built.
 
 ## Run it locally
 
@@ -12,8 +29,47 @@ Requires [uv](https://docs.astral.sh/uv/).
 uv run python main.py
 ```
 
-Then open http://localhost:8000. Configuration is read from a `.env` file in
-the repo root (prefix `MORNING_DUST_`) — see `app/config.py` for every option.
+Then open http://localhost:8000.
+
+### Choosing a host and port
+
+`main.py` is a [Typer](https://typer.tiangolo.com/) CLI. Run it with `--help`
+to see everything:
+
+```bash
+uv run python main.py --help
+```
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `--host` | `0.0.0.0` | Interface to bind. `0.0.0.0` serves the whole LAN; `127.0.0.1` keeps it to this machine. |
+| `--port`, `-p` | `8000` | Port to listen on. |
+| `--reload` / `--no-reload` | `--no-reload` | Restart on code changes. Handy while developing. |
+
+```bash
+uv run python main.py --port 9000              # different port
+uv run python main.py --host 127.0.0.1         # this machine only
+uv run python main.py -p 9000 --reload         # dev server on 9000
+```
+
+### Configuration
+
+Settings are read from a `.env` file in the repo root (prefix
+`MORNING_DUST_`) — see `app/config.py` for every option. Host, port and reload
+can be set there too:
+
+```dotenv
+MORNING_DUST_HOST=127.0.0.1
+MORNING_DUST_PORT=9000
+MORNING_DUST_DEBUG=true
+```
+
+Precedence is **command-line flag → environment / `.env` → built-in default**,
+so the flags above override `.env` for a single run without editing anything.
+
+> Changing the port has two knock-on effects: `deploy/open-browser.sh` waits on
+> port 8000, and the systemd unit runs `main.py` with no flags. Update both if
+> you want a different port on the Pi — see below.
 
 ---
 
@@ -45,6 +101,18 @@ sudo systemctl disable --now morning-dust   # stop + remove from boot
 > `/home/fokito/repos/morning-dust`, edit `User=`, `WorkingDirectory=`, and the
 > `ExecStart=` uv path in `deploy/morning-dust.service` before installing.
 > Find your uv path with `which uv`.
+
+To run the service on a different host or port, either add the flags to
+`ExecStart=` in `deploy/morning-dust.service`:
+
+```ini
+ExecStart=/home/fokito/.local/bin/uv run python main.py --port 9000
+```
+
+…or set `MORNING_DUST_PORT` in the repo's `.env`, which the unit picks up
+without editing it. Either way, also change `URL=` in `deploy/open-browser.sh`
+so the browser opens the right address. Then
+`sudo systemctl daemon-reload && sudo systemctl restart morning-dust`.
 
 ### Open Chromium to the dashboard on boot
 

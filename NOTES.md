@@ -26,6 +26,12 @@ locked down — easier to exit during development, less hardened for production.
 
 ## Frontend Architecture
 
+> **Superseded.** This section describes the original multi-file frontend
+> (`app.js`, `pager.js`, `todo.js`, `styles.css`), which was replaced by the
+> single compiled `app/static/index.html` and deleted — recover from git
+> history if needed. Kept for the rationale. See `INTEGRATION.md` for the
+> current UI.
+
 - Plain HTML/CSS/JS served by FastAPI's `StaticFiles` (no build step, no Node
   on the Pi).
 - Polls `/api/weather` every 60s. Open-Meteo refreshes its `current` block
