@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     todo_dir: str = "data"
     todo_lists: Annotated[list[str], NoDecode] = ["groceries", "tasks"]
 
+    # morning-dust dashboard store: one SQLite file for todos, local calendar events,
+    # recipes, notes and weigh-ins. import_json_todos lifts the legacy
+    # todos-*.json lists into the merged list on first start.
+    db_path: str = "data/morning-dust.db"
+    import_json_todos: bool = True
+
     commute_origin_lat: float | None = HOME_LAT
     commute_origin_lon: float | None = HOME_LON
     commute_destination_lat: float | None = WORK_LAT
