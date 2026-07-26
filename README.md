@@ -97,6 +97,32 @@ sudo systemctl restart morning-dust     # after a code change
 sudo systemctl disable --now morning-dust   # stop + remove from boot
 ```
 
+### Auto-update on start
+
+Every start and restart runs `deploy/update.sh` first, which does a
+`git pull --ff-only` of the current branch. So deploying is just:
+
+```bash
+git push                                # from your laptop
+sudo systemctl restart morning-dust     # on the Pi
+```
+
+`uv run` re-syncs the venv from `uv.lock`, so a pull that changes dependencies
+needs no extra step. The pull is deliberately timid — it skips when the working
+tree is dirty or HEAD is detached, and a network or auth failure just logs and
+starts the old code. Check what happened with `journalctl -u morning-dust | grep
+update:`.
+
+Because `origin` is an SSH remote, the Pi needs a **passphrase-less** key that
+can read the repo (a GitHub deploy key is the tidy option) — there is no agent
+or prompt available under systemd. Verify it before relying on this:
+
+```bash
+GIT_SSH_COMMAND='ssh -o BatchMode=yes' git -C ~/repos/morning-dust fetch origin
+```
+
+If that asks for anything or fails, the pull will silently no-op every boot.
+
 > If your username isn't `fokito` or the repo isn't at
 > `/home/fokito/repos/morning-dust`, edit `User=`, `WorkingDirectory=`, and the
 > `ExecStart=` uv path in `deploy/morning-dust.service` before installing.

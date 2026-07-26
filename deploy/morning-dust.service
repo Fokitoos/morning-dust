@@ -9,13 +9,20 @@ Type=simple
 User=fokito
 Group=fokito
 WorkingDirectory=/home/fokito/repos/morning-dust
+# Pull latest code on every start/restart. The leading "-" means a non-zero
+# exit here never blocks the service (the script tries hard not to fail anyway).
+ExecStartPre=-/home/fokito/repos/morning-dust/deploy/update.sh
 # Absolute path to uv — systemd does not load your login PATH.
+# "uv run" syncs the venv from uv.lock first, so a pull that changed deps is
+# picked up automatically.
 ExecStart=/home/fokito/.local/bin/uv run python main.py
 # Restart on crash; back off so a hard failure loop doesn't spin the CPU.
 Restart=on-failure
 RestartSec=5
 # Reads .env from WorkingDirectory; this just makes logs/encoding sane.
 Environment=PYTHONUNBUFFERED=1
+# git needs HOME to find ~/.ssh and ~/.gitconfig during ExecStartPre.
+Environment=HOME=/home/fokito
 
 [Install]
 WantedBy=multi-user.target
