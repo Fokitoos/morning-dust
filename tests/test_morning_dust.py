@@ -109,3 +109,10 @@ def test_weights_are_sorted_and_range_checked(client):
     assert dates == ["2026-07-14", "2026-07-20"]
 
     assert client.post("/api/weights", json={"date": "2026-07-21", "grams": 12}).status_code == 422
+
+
+def test_weights_track_person_and_default_to_ermis(client):
+    client.post("/api/weights", json={"date": "2026-07-20", "grams": 3450})
+    client.post("/api/weights", json={"date": "2026-07-21", "grams": 4100, "person": "ashley"})
+    items = client.get("/api/weights").json()["items"]
+    assert [(w["person"], w["grams"]) for w in items] == [("ermis", 3450), ("ashley", 4100)]

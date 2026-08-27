@@ -126,11 +126,13 @@ class Weight(BaseModel):
     id: int
     date: str
     grams: int
+    person: str = "ermis"
 
 
 class WeightNew(BaseModel):
     date: str
     grams: int
+    person: str = "ermis"
 
 
 class WeightList(BaseModel):

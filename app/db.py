@@ -53,9 +53,10 @@ CREATE TABLE IF NOT EXISTS notes (
 );
 
 CREATE TABLE IF NOT EXISTS weights (
-    id    INTEGER PRIMARY KEY AUTOINCREMENT,
-    date  TEXT    NOT NULL,
-    grams INTEGER NOT NULL
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    date   TEXT    NOT NULL,
+    grams  INTEGER NOT NULL,
+    person TEXT    NOT NULL DEFAULT 'ermis'
 );
 CREATE INDEX IF NOT EXISTS weights_date ON weights (date);
 """
@@ -92,9 +93,17 @@ def init_db(force: bool = False) -> None:
             return
         with db() as conn:
             conn.executescript(_SCHEMA)
+            _migrate(conn)
             if settings.import_json_todos:
                 _import_json_todos(conn)
         _initialized = True
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Additive migrations for databases created before a column existed."""
+    weight_cols = {row[1] for row in conn.execute("PRAGMA table_info(weights)")}
+    if "person" not in weight_cols:
+        conn.execute("ALTER TABLE weights ADD COLUMN person TEXT NOT NULL DEFAULT 'ermis'")
 
 
 def reset_for_tests() -> None:
