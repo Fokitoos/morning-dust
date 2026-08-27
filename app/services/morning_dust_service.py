@@ -296,20 +296,27 @@ class NoteStore:
 class WeightStore:
     def list(self) -> list[Weight]:
         with db() as conn:
-            rows = conn.execute("SELECT id, date, grams FROM weights ORDER BY date").fetchall()
-        return [Weight(id=r["id"], date=r["date"], grams=r["grams"]) for r in rows]
+            rows = conn.execute(
+                "SELECT id, date, grams, person FROM weights ORDER BY date"
+            ).fetchall()
+        return [
+            Weight(id=r["id"], date=r["date"], grams=r["grams"], person=r["person"])
+            for r in rows
+        ]
 
     def create(self, payload: WeightNew) -> Weight:
         if not payload.date:
             raise HTTPException(status_code=422, detail="Date is required")
         if not 300 <= payload.grams <= 30000:
             raise HTTPException(status_code=422, detail="Weight must be between 300 and 30000 grams")
+        person = payload.person.strip() or "ermis"
         with db() as conn:
             cur = conn.execute(
-                "INSERT INTO weights (date, grams) VALUES (?, ?)", (payload.date, payload.grams)
+                "INSERT INTO weights (date, grams, person) VALUES (?, ?, ?)",
+                (payload.date, payload.grams, person),
             )
             new_id = int(cur.lastrowid)
-        return Weight(id=new_id, date=payload.date, grams=payload.grams)
+        return Weight(id=new_id, date=payload.date, grams=payload.grams, person=person)
 
     def delete(self, weight_id: int) -> None:
         with db() as conn:
