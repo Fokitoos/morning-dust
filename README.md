@@ -88,6 +88,12 @@ This copies `deploy/morning-dust.service` to `/etc/systemd/system/`, then
 `uv run python main.py` as your user, waits for the network, and restarts on
 crash.
 
+The app already binds `0.0.0.0:8000`, so it's reachable from any phone or
+laptop on the same Wi-Fi as the Pi. The installer opens port 8000 in `ufw` if
+it finds that firewall active, and prints the URLs to use — normally
+`http://<pi-hostname>.local:8000`, or the printed LAN IP if `.local` mDNS
+doesn't resolve on your phone.
+
 Manage it:
 
 ```bash
