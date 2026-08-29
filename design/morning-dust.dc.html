@@ -615,17 +615,18 @@ textarea.input { min-height: 90px; resize: vertical; }
             <div class="card elev-sm" style="gap: var(--space-2);">
               <div class="card-kicker">Your bake</div>
               <label style="font-size: 13px; opacity: 0.7;">Pizzas (250 g balls — 12", Ooni Karu 12)</label>
-              <input class="input" type="number" min="1" max="12" step="1" sc-camel-input-mode="numeric" sc-camel-default-value="{{ pzCount }}" sc-camel-on-input="{{ pzSetCount }}">
+              <input class="input" type="number" min="1" max="12" step="1" sc-camel-input-mode="numeric" sc-camel-default-value="{{ pzCount }}" sc-camel-on-input="{{ pzSetCount }}" sc-camel-on-key-down="{{ pzKey }}">
               <label style="font-size: 13px; opacity: 0.7;">Dough rest (hours, from – to)</label>
               <div style="display: flex; gap: 8px;">
-                <input class="input" type="number" min="2" max="72" step="1" sc-camel-input-mode="numeric" sc-camel-default-value="{{ pzHMin }}" sc-camel-on-input="{{ pzSetHMin }}" style="flex: 1;">
-                <input class="input" type="number" min="2" max="72" step="1" sc-camel-input-mode="numeric" sc-camel-default-value="{{ pzHMax }}" sc-camel-on-input="{{ pzSetHMax }}" style="flex: 1;">
+                <input class="input" type="number" min="2" max="72" step="1" sc-camel-input-mode="numeric" sc-camel-default-value="{{ pzHMin }}" sc-camel-on-input="{{ pzSetHMin }}" sc-camel-on-key-down="{{ pzKey }}" style="flex: 1;">
+                <input class="input" type="number" min="2" max="72" step="1" sc-camel-input-mode="numeric" sc-camel-default-value="{{ pzHMax }}" sc-camel-on-input="{{ pzSetHMax }}" sc-camel-on-key-down="{{ pzKey }}" style="flex: 1;">
               </div>
               <label style="font-size: 13px; opacity: 0.7;">Yeast</label>
               <select class="input" sc-camel-default-value="{{ pzYeast }}" sc-camel-on-change="{{ pzSetYeast }}">
                 <option value="dry">Regular dry yeast (instant)</option>
                 <option value="lmr">Lievito madre essiccato (Molino Rossetto)</option>
               </select>
+              <button type="button" class="btn btn-primary btn-block" sc-camel-on-click="{{ runPizzaCalc }}" style="margin-top: 4px;">Calculate</button>
             </div>
             <div class="card elev-sm" style="gap: 4px;">
               <div class="card-kicker">Ingredients</div>
@@ -862,13 +863,9 @@ class Component extends DCLogic {
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevState.weekOffset !== this.state.weekOffset) this.pullEvents();
-    const opened = this.state.pizzaCalc && !prevState.pizzaCalc;
-    const changed = this.state.pizzaCalc && prevState.pz !== this.state.pz;
-    if (opened || changed) this.fetchPizzaCalcDebounced();
   }
   componentWillUnmount() {
     clearInterval(this.timer);
-    clearTimeout(this.pizzaTimer);
     Object.keys(this.noteTimers).forEach(k => clearTimeout(this.noteTimers[k]));
   }
 
@@ -950,11 +947,9 @@ class Component extends DCLogic {
     return { start: Component.ymd(Component.addDays(ws, -7)), end: Component.ymd(Component.addDays(ws, 35)) };
   }
   /** The dough math and method text live server-side (app/services/pizza_service.py)
-      so they're one editable, tested place instead of buried in this compiled file. */
-  fetchPizzaCalcDebounced() {
-    clearTimeout(this.pizzaTimer);
-    this.pizzaTimer = setTimeout(() => this.fetchPizzaCalc(), 300);
-  }
+      so they're one editable, tested place instead of buried in this compiled file.
+      Runs once when the calculator opens and again on the Calculate button —
+      edits to the form stay local until the user asks for a recalculation. */
   fetchPizzaCalc() {
     const { count, hMin, hMax, yeast } = this.state.pz;
     const lo = Math.min(hMin, hMax), hi = Math.max(hMin, hMax);
@@ -1493,6 +1488,8 @@ class Component extends DCLogic {
       pzCount: s.pz.count, pzHMin: s.pz.hMin, pzHMax: s.pz.hMax, pzYeast: s.pz.yeast,
       pzSetCount: pzSet('count', 1, 12, 2), pzSetHMin: pzSet('hMin', 2, 72, 8), pzSetHMax: pzSet('hMax', 2, 72, 24),
       pzSetYeast: (e) => this.setState({ pz: Object.assign({}, this.state.pz, { yeast: e.target.value }) }),
+      runPizzaCalc: () => this.fetchPizzaCalc(),
+      pzKey: (e) => { if (e.key === 'Enter') this.fetchPizzaCalc(); },
       pzHasResult: !!pr, pzNoResult: !pr && !s.pizzaFailed, pzHasError: !pr && s.pizzaFailed,
       pzSummary: pr ? pr.summary : '',
       pzIngredients: pr ? pr.ingredients.map(i => ({ label: i.label, amount: i.amount })) : [],
