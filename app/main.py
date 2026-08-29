@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db import init_db
-from app.routers import calendar, commute, health, morning_dust, todo, weather
+from app.routers import calendar, commute, health, morning_dust, pizza, todo, weather
 from app.services.commute_scheduler import run_daily_commute_refresh
 from app.services.commute_service import get_commute_service
 
@@ -59,6 +59,7 @@ def create_app() -> FastAPI:
     app.include_router(morning_dust.recipes, prefix="/api/recipes", tags=["morning-dust"])
     app.include_router(morning_dust.notes, prefix="/api/notes", tags=["morning-dust"])
     app.include_router(morning_dust.weights, prefix="/api/weights", tags=["morning-dust"])
+    app.include_router(pizza.router, prefix="/api/pizza-calc", tags=["morning-dust"])
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
