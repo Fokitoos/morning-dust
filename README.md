@@ -8,7 +8,9 @@ FastAPI backend serving a single self-contained page, with six tabs.
 - **Calendar** — a week view merging read-only ICS feeds with events you add
   yourself. Imports `.ics` files.
 - **To-dos** — one shared list with optional due dates.
-- **Recipes** — a recipe book with photos, ingredients and steps.
+- **Recipes** — a recipe book with photos, ingredients and steps, plus a
+  pizza dough calculator (pizzas × rest window × yeast type → ingredients
+  and method, sized for 12" Ooni-style bakes).
 - **Notes** — a sticky-note board.
 - **Ermis** — a weight logbook with a chart.
 
