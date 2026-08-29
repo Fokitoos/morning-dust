@@ -114,3 +114,7 @@ Offline, and if it fails, vendor the two React UMD files into
 
 Nothing. Weather, commute, calendar, to-dos, recipes, notes and the weight log
 all read and write through the API; `localStorage` is only the offline cache.
+The pizza calculator has nothing to persist, but its dough math and method
+text still live server-side (`app/services/pizza_service.py`, exposed at
+`GET /api/pizza-calc`) rather than in the compiled UI, so the recipe can be
+tuned and tested in a normal Python file instead of hand-edited here.
