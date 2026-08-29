@@ -103,12 +103,32 @@ Back it up like any file: `sqlite3 data/morning-dust.db ".backup data/morning-du
 
 ## Rebuilding the UI file
 
-`app/static/index.html` is compiled from `morning-dust.dc.html` in the design
-project — edit there and re-export; don't hand-edit the compiled file. It is
-fully self-contained apart from React, which loads from unpkg on first paint;
-if the Pi may be offline at boot, confirm it once with DevTools → Network →
-Offline, and if it fails, vendor the two React UMD files into
-`app/static/vendor/` and point the two `<script src>` tags at them.
+`app/static/index.html` is a self-extracting bundle: the authored UI source
+(the `<x-dc>` markup plus the component script) lives inside it, JSON-encoded,
+in a `<script type="__bundler/template">` tag. Don't hand-edit that blob —
+`design/sync.py` moves the source in and out of it:
+
+```bash
+python design/sync.py extract   # bundle -> design/morning-dust.dc.html
+python design/sync.py inject    # design/morning-dust.dc.html -> bundle
+```
+
+So the edit loop is: change `design/morning-dust.dc.html`, run `inject`, commit
+both files. The round trip is lossless — only the `<x-dc>…</script>` region is
+exchanged, and the bundle's shell, asset manifest and font/runtime UUID
+placeholders are left untouched.
+
+`design/morning-dust.dc.html` is also the file to paste into the Claude Design
+project (**hearth**) when you want that project to catch up with code-side
+edits, and the file to overwrite with a fresh export when the design project is
+the one that moved. Keeping it in git is what stops the two from drifting
+silently — before this existed, a re-export from the design project would have
+quietly reverted anything changed here.
+
+The compiled page is fully self-contained apart from React, which loads from
+unpkg on first paint; if the Pi may be offline at boot, confirm it once with
+DevTools → Network → Offline, and if it fails, vendor the two React UMD files
+into `app/static/vendor/` and point the two `<script src>` tags at them.
 
 ## Not wired to the server
 
