@@ -27,6 +27,7 @@ from app.schemas.morning_dust import (
     WeightList,
     WeightNew,
 )
+from app.schemas.recipe_import import RecipeImportRequest, RecipeImportResult
 from app.services.morning_dust_service import (
     AgendaStore,
     NoteStore,
@@ -39,6 +40,7 @@ from app.services.morning_dust_service import (
     get_todo_store,
     get_weight_store,
 )
+from app.services.recipe_import_service import RecipeImportService, get_recipe_import_service
 
 todos = APIRouter()
 events = APIRouter()
@@ -118,6 +120,26 @@ def list_recipes(store: RecipeStore = Depends(get_recipe_store)) -> RecipeList:
 @recipes.post("", response_model=Recipe, status_code=201)
 def create_recipe(payload: RecipeNew, store: RecipeStore = Depends(get_recipe_store)) -> Recipe:
     return store.create(payload)
+
+
+@recipes.post("/import", response_model=RecipeImportResult, status_code=201)
+def import_recipe(
+    payload: RecipeImportRequest,
+    service: RecipeImportService = Depends(get_recipe_import_service),
+    store: RecipeStore = Depends(get_recipe_store),
+) -> RecipeImportResult:
+    """Scrape a recipe URL, or parse pasted recipe text, and save the result
+    straight into the recipe book. The warnings name fields the parser
+    couldn't confidently fill, so the user knows what to edit."""
+    draft = service.import_recipe(payload)
+    notes = draft.notes
+    if draft.source_url:
+        notes = (notes + "\n\n" if notes else "") + "Source: " + draft.source_url
+    recipe = store.create(RecipeNew(
+        title=draft.title, tags=draft.tags, servings=draft.servings, time=draft.time,
+        photo=draft.photo, ingredients=draft.ingredients, steps=draft.steps, notes=notes,
+    ))
+    return RecipeImportResult(recipe=recipe, source_url=draft.source_url, warnings=draft.warnings)
 
 
 @recipes.put("/{recipe_id}", response_model=Recipe)
