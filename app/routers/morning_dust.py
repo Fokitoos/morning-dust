@@ -3,7 +3,7 @@ of the read-only ICS feeds, recipes, notes and the weight log."""
 
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.schemas.morning_dust import (
     AgendaEvent,
@@ -27,6 +27,7 @@ from app.schemas.morning_dust import (
     WeightList,
     WeightNew,
 )
+from app.schemas.nutrition import ScaledRecipe
 from app.schemas.recipe_import import RecipeImportRequest, RecipeImportResult
 from app.services.morning_dust_service import (
     AgendaStore,
@@ -40,7 +41,9 @@ from app.services.morning_dust_service import (
     get_todo_store,
     get_weight_store,
 )
+from app.services.nutrition_service import NutritionService, get_nutrition_service
 from app.services.recipe_import_service import RecipeImportService, get_recipe_import_service
+from app.services.recipe_scale_service import parse_servings, scale_ingredients
 
 todos = APIRouter()
 events = APIRouter()
@@ -140,6 +143,31 @@ def import_recipe(
         photo=draft.photo, ingredients=draft.ingredients, steps=draft.steps, notes=notes,
     ))
     return RecipeImportResult(recipe=recipe, source_url=draft.source_url, warnings=draft.warnings)
+
+
+@recipes.get("/{recipe_id}/scaled", response_model=ScaledRecipe)
+def scaled_recipe(
+    recipe_id: int,
+    servings: int = Query(ge=1, le=100),
+    store: RecipeStore = Depends(get_recipe_store),
+) -> ScaledRecipe:
+    """Ingredient lines rescaled from the recipe's own serving count."""
+    recipe = store.get(recipe_id)
+    base = parse_servings(recipe.servings)
+    if base is None:
+        raise HTTPException(status_code=422, detail="This recipe has no serving count to scale from")
+    return scale_ingredients(recipe.ingredients, base, servings)
+
+
+@recipes.post("/{recipe_id}/nutrition", response_model=Recipe)
+def estimate_nutrition(
+    recipe_id: int,
+    store: RecipeStore = Depends(get_recipe_store),
+    service: NutritionService = Depends(get_nutrition_service),
+) -> Recipe:
+    """Estimate per-serving nutrition for the recipe and store it on it."""
+    recipe = store.get(recipe_id)
+    return store.set_nutrition(recipe_id, service.estimate_for(recipe))
 
 
 @recipes.put("/{recipe_id}", response_model=Recipe)

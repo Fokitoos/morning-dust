@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     commute_daily_refresh_hour: int = 7
     tomtom_api_key: str | None = None
 
+    # Recipe nutrition estimates are produced by Claude (app/clients/nutrition_client.py).
+    # Without a key the recipe book still works; the Estimate button explains what's missing.
+    anthropic_api_key: str | None = None
+
     # Google Calendar via private iCal (.ics) feeds. Set one or more secret
     # URLs (comma- or whitespace-separated in .env). Read-only, no OAuth.
     # NoDecode: keep pydantic-settings from JSON-decoding the env value so the

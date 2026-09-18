@@ -26,6 +26,7 @@ from app.schemas.morning_dust import (
     Weight,
     WeightNew,
 )
+from app.schemas.nutrition import NutritionInfo
 from app.services.calendar_service import get_calendar_service
 
 
@@ -39,6 +40,15 @@ def _jl(raw: str) -> list[str]:
     except json.JSONDecodeError:
         return []
     return [str(v) for v in value] if isinstance(value, list) else []
+
+
+def _nutrition(raw: str) -> NutritionInfo | None:
+    if not raw:
+        return None
+    try:
+        return NutritionInfo.model_validate_json(raw)
+    except ValueError:
+        return None
 
 
 # ---- todos ----
@@ -205,7 +215,8 @@ class RecipeStore:
         return Recipe(
             id=r["id"], title=r["title"], tags=_jl(r["tags"]), servings=r["servings"],
             time=r["time"], photo=r["photo"], ingredients=_jl(r["ingredients"]),
-            steps=_jl(r["steps"]), notes=r["notes"], updated=r["updated"],
+            steps=_jl(r["steps"]), notes=r["notes"], nutrition=_nutrition(r["nutrition"]),
+            updated=r["updated"],
         )
 
     def list(self) -> list[Recipe]:
@@ -238,13 +249,30 @@ class RecipeStore:
         title = payload.title.strip()
         if not title:
             raise HTTPException(status_code=422, detail="Recipe title is required")
+        # A nutrition estimate describes one ingredient list at one serving
+        # count; if either changes it's stale, so drop it rather than lie.
+        current = self.get(recipe_id)
+        keep_nutrition = (
+            current.ingredients == payload.ingredients and current.servings == payload.servings
+        )
         with db() as conn:
             cur = conn.execute(
                 "UPDATE recipes SET title = ?, tags = ?, servings = ?, time = ?, photo = ?, "
-                "ingredients = ?, steps = ?, notes = ?, updated = ? WHERE id = ?",
+                "ingredients = ?, steps = ?, notes = ?, nutrition = ?, updated = ? WHERE id = ?",
                 (title, json.dumps(payload.tags), payload.servings, payload.time, payload.photo,
                  json.dumps(payload.ingredients), json.dumps(payload.steps), payload.notes,
+                 current.nutrition.model_dump_json() if (keep_nutrition and current.nutrition) else "",
                  _now_ms(), recipe_id),
+            )
+            if cur.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Recipe not found")
+        return self.get(recipe_id)
+
+    def set_nutrition(self, recipe_id: int, info: NutritionInfo) -> Recipe:
+        with db() as conn:
+            cur = conn.execute(
+                "UPDATE recipes SET nutrition = ? WHERE id = ?",
+                (info.model_dump_json(), recipe_id),
             )
             if cur.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Recipe not found")
