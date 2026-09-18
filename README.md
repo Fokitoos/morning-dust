@@ -96,6 +96,10 @@ it finds that firewall active, and prints the URLs to use — normally
 `http://<pi-hostname>.local:8000`, or the printed LAN IP if `.local` mDNS
 doesn't resolve on your phone.
 
+For access from **outside** the house, do not port-forward 8000 — the app has
+no authentication. See [deploy/REMOTE-ACCESS.md](deploy/REMOTE-ACCESS.md) for
+the plan (short version: Tailscale on the Pi and the phone).
+
 Manage it:
 
 ```bash
