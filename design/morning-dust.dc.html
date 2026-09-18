@@ -460,6 +460,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <sc-if value="{{ noDashTodos }}" hint-placeholder-val="{{ false }}">
             <p class="card-body">All clear. Nothing waiting on you.</p>
           </sc-if>
+          <sc-if value="{{ hasGrocOpen }}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; opacity: 0.75;">{{ grocOpenLabel }}</div></sc-if>
           <div><button type="button" class="btn btn-ghost" sc-camel-on-click="{{ goTodos }}">Open the list<svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
         </div>
         <div class="card elev-sm" style="gap: var(--space-2);">
@@ -570,6 +571,7 @@ textarea.input { min-height: 90px; resize: vertical; }
       <h1 style="font-size: 34px; margin: var(--space-6) 0 var(--space-3);">To-dos</h1>
       <div class="card elev-sm" style="max-width: 760px; gap: var(--space-3);">
         <div style="display: flex; align-items: baseline; gap: 12px;">
+          <div class="card-kicker">Tasks</div>
           <span style="font-size: 12px; opacity: 0.55;">{{ curListSummary }}</span>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -593,6 +595,33 @@ textarea.input { min-height: 90px; resize: vertical; }
           </sc-for>
         </div>
         <sc-if value="{{ noTodos }}" hint-placeholder-val="{{ false }}"><p class="card-body">All clear — add something above.</p></sc-if>
+      </div>
+      <div class="card elev-sm" style="max-width: 760px; gap: var(--space-3); margin-top: var(--space-3);">
+        <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+          <div class="card-kicker">Groceries</div>
+          <span style="font-size: 12px; opacity: 0.55; margin-right: auto;">{{ grocSummary }}</span>
+          <sc-if value="{{ grocHasDone }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn btn-ghost" sc-camel-on-click="{{ clearBought }}">Clear bought</button></sc-if>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <input class="input" placeholder="Add a grocery…" ref="{{ grocText }}" sc-camel-on-key-down="{{ grocKey }}" style="flex: 1; min-width: 200px;">
+          <button type="button" class="btn btn-primary" sc-camel-on-click="{{ addGrocery }}">Add</button>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <sc-for list="{{ groceries }}" as="g" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--color-divider);">
+              <sc-if value="{{ g.done }}" hint-placeholder-val="{{ false }}">
+                <button type="button" sc-camel-on-click="{{ g.toggle }}" aria-label="Mark not bought" style="width: 30px; height: 30px; border-radius: 999px; border: none; background: var(--color-accent-2); color: var(--color-bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; padding: 0;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+              </sc-if>
+              <sc-if value="{{ g.open }}" hint-placeholder-val="{{ true }}">
+                <button type="button" sc-camel-on-click="{{ g.toggle }}" aria-label="Mark bought" style="width: 30px; height: 30px; border-radius: 999px; border: 2px solid var(--color-neutral-300); background: transparent; cursor: pointer; flex: none; padding: 0;" style-hover="border-color: var(--color-accent-2);"></button>
+              </sc-if>
+              <span style="{{ g.txtStyle }}">{{ g.text }}</span>
+              <sc-if value="{{ g.hasSource }}" hint-placeholder-val="{{ false }}"><span class="tag tag-neutral" style="flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ g.source }}</span></sc-if>
+              <button type="button" sc-camel-on-click="{{ g.remove }}" aria-label="Delete grocery" style="background: none; border: none; cursor: pointer; color: var(--color-text); opacity: 0.35; padding: 10px; line-height: 1; flex: none;" style-hover="opacity: 0.9;"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ noGroceries }}" hint-placeholder-val="{{ false }}"><p class="card-body">Nothing to buy. Open a recipe and tap “Add to groceries” to fill this up.</p></sc-if>
       </div>
     </sc-if>
 
@@ -791,7 +820,14 @@ textarea.input { min-height: 90px; resize: vertical; }
                 <p class="card-body" style="color: var(--color-accent-2-900); white-space: pre-wrap;">{{ rNotesView }}</p>
               </div>
             </sc-if>
-            <div style="display: flex; gap: 8px;">
+            <sc-if value="{{ hasGrocNotice }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="background: var(--color-accent-100); gap: 6px;">
+                <p class="card-body" style="color: var(--color-accent-900);">{{ grocNotice }}</p>
+                <div><button type="button" class="btn btn-ghost" sc-camel-on-click="{{ goTodos }}">Open groceries<svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div>
+              </div>
+            </sc-if>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary" sc-camel-on-click="{{ addToGroceries }}"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>{{ grocButtonLabel }}</button>
               <button type="button" class="btn btn-secondary" sc-camel-on-click="{{ editRecipe }}">Edit recipe</button>
               <button type="button" class="btn btn-ghost" sc-camel-on-click="{{ deleteRecipe }}">Delete</button>
             </div>
@@ -949,7 +985,7 @@ class Component extends DCLogic {
       tab: 'today', weekOffset: 0, recipeId: null, editing: false, draft: null, photoDraft: null, icsMsg: '',
       pizzaCalc: false, pz: { count: 2, hMin: 8, hMax: 24, yeast: 'dry' }, pizzaResult: null, pizzaFailed: false,
       recipeImport: false, importBusy: false, importSlow: false, importError: '', importNotice: '',
-      rServ: null, rScaled: null, nutBusy: null, nutError: null,
+      rServ: null, rScaled: null, nutBusy: null, nutError: null, grocBusy: null, grocNotice: null,
       events: data.events || [], todos: data.todos || [], recipes: data.recipes || [], notes: data.notes || [], weights: data.weights || [],
       weather: Component.validWeather(data.weather), commute: data.commute || null, feedStatus: '',
       sync: { state: 'loading', lastOk: cache ? (cache.savedAt || 0) : 0, pending: 0, sample: !cache },
@@ -957,7 +993,7 @@ class Component extends DCLogic {
     this.queue = [];      // writes that failed while the API was unreachable
     this.idMap = {};      // temp id → server id, for replaying queued writes
     this.noteTimers = {}; // debounce timers for sticky-note text
-    ['evTitle', 'evDate', 'evTime', 'icsFile', 'todoText', 'todoDue', 'rfTitle', 'rfTags', 'rfServ', 'rfTime', 'rfIngr', 'rfSteps', 'rfNotes', 'photoFile', 'riUrl', 'riText', 'wDate', 'wGrams', 'aDate', 'aGrams'].forEach(k => { this[k] = React.createRef(); });
+    ['evTitle', 'evDate', 'evTime', 'icsFile', 'todoText', 'todoDue', 'grocText', 'rfTitle', 'rfTags', 'rfServ', 'rfTime', 'rfIngr', 'rfSteps', 'rfNotes', 'photoFile', 'riUrl', 'riText', 'wDate', 'wGrams', 'aDate', 'aGrams'].forEach(k => { this[k] = React.createRef(); });
   }
 
   // ---------- lifecycle ----------
@@ -1109,6 +1145,32 @@ class Component extends DCLogic {
     return this.get('/api/recipes/' + id + '/scaled?servings=' + n)
       .then(d => { if (this.state.rServ && this.state.rServ.id === id && this.state.rServ.n === n) this.setState({ rScaled: { id, n, data: d } }); })
       .catch(() => {});
+  }
+  /** Put a recipe's ingredient lines (at the chosen serving count) on the
+      groceries list. Several recipes stack; identical open lines are skipped. */
+  addRecipeToGroceries(id, servings) {
+    if (this.state.grocBusy === id) return;
+    this.setState({ grocBusy: id, grocNotice: null });
+    return fetch(this.base() + '/api/recipes/' + id + '/groceries', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store',
+      body: JSON.stringify(servings ? { servings } : {}),
+    })
+      .then(r => r.json().catch(() => ({})).then(d => ({ ok: r.ok, status: r.status, d })))
+      .then(({ ok, status, d }) => {
+        if (!ok) {
+          const detail = d && typeof d.detail === 'string' ? d.detail : ('Server answered ' + status + '.');
+          this.setState({ grocBusy: null, grocNotice: { id, text: detail } });
+          return;
+        }
+        const added = d.added || [];
+        const n = added.length, k = d.skipped || 0;
+        const text = n
+          ? ('Added ' + n + (n === 1 ? ' item' : ' items') + ' to groceries' + (k ? ' — ' + k + ' already on the list.' : '.'))
+          : 'Everything from this recipe is already on the groceries list.';
+        this.mut({ todos: [...this.state.todos, ...added], grocBusy: null, grocNotice: { id, text } });
+        this.syncOk();
+      })
+      .catch(() => this.setState({ grocBusy: null, grocNotice: { id, text: "Couldn't reach the server — check the connection and try again." } }));
   }
   /** Ask the server for a per-serving nutrition estimate and store it on the recipe. */
   estimateNutrition(id) {
@@ -1363,7 +1425,8 @@ class Component extends DCLogic {
 
     // ---- todos ----
     const showDone = P.showCompleted ?? true;
-    const sorted = [...s.todos].sort((a, b) => (a.done - b.done) || ((a.due || '9999') < (b.due || '9999') ? -1 : 1));
+    const isGrocery = (i) => i.list === 'groceries';
+    const sorted = [...s.todos].filter(i => !isGrocery(i)).sort((a, b) => (a.done - b.done) || ((a.due || '9999') < (b.due || '9999') ? -1 : 1));
     const toggleTodo = (it, forceDone) => () => {
       const done = forceDone === undefined ? !it.done : forceDone;
       this.mut({ todos: this.state.todos.map(x => x.id === it.id ? Object.assign({}, x, { done }) : x) });
@@ -1394,8 +1457,33 @@ class Component extends DCLogic {
         this.mut({ todos: this.state.todos.map(x => x.id === temp ? { id: d.id, text: d.text, done: d.done, due: d.due } : x) });
       }, temp);
     };
-    const openCount = s.todos.filter(i => !i.done).length;
-    const doneCount = s.todos.length - openCount;
+    const taskItems = s.todos.filter(i => !isGrocery(i));
+    const openCount = taskItems.filter(i => !i.done).length;
+    const doneCount = taskItems.length - openCount;
+
+    // ---- groceries: same table, list === 'groceries', tagged with the recipe ----
+    const grocAll = s.todos.filter(isGrocery);
+    const groceries = [...grocAll].sort((a, b) => (a.done - b.done) || ((a.source || '') < (b.source || '') ? -1 : (a.source || '') > (b.source || '') ? 1 : 0) || (a.id > b.id ? 1 : -1)).map(it => ({
+      text: it.text, done: it.done, open: !it.done, source: it.source || '', hasSource: !!it.source,
+      toggle: toggleTodo(it), remove: removeTodo(it),
+      txtStyle: Object.assign({ flex: 1, fontSize: '14.5px' }, it.done ? { opacity: 0.45, textDecoration: 'line-through' } : {}),
+    }));
+    const grocOpen = grocAll.filter(i => !i.done).length, grocDone = grocAll.length - grocOpen;
+    const addGrocery = () => {
+      const text = this.grocText.current ? this.grocText.current.value.trim() : '';
+      if (!text) return;
+      const temp = Component.uid();
+      this.mut({ todos: [...this.state.todos, { id: temp, text, done: false, due: '', list: 'groceries', source: '' }] });
+      this.grocText.current.value = '';
+      this.op('POST', '/api/todos', { text, due: '', done: false, list: 'groceries' }, (d) => {
+        this.idMap[temp] = d.id;
+        this.mut({ todos: this.state.todos.map(x => x.id === temp ? d : x) });
+      }, temp);
+    };
+    const clearBought = () => {
+      this.mut({ todos: this.state.todos.filter(i => !(isGrocery(i) && i.done)) });
+      this.op('POST', '/api/todos/clear-done?list=groceries', {});
+    };
 
     // ---- recipes ----
     const openR = s.recipes.find(r => r.id === s.recipeId) || null;
@@ -1661,6 +1749,10 @@ class Component extends DCLogic {
       pickIcs: () => { if (this.icsFile.current) this.icsFile.current.click(); },
       hasIcsMsg: !!s.icsMsg, icsMsg: s.icsMsg,
       todos, noTodos: todos.length === 0,
+      groceries, noGroceries: groceries.length === 0,
+      grocSummary: grocOpen + ' to buy · ' + grocDone + ' bought', grocHasDone: grocDone > 0,
+      addGrocery, grocKey: (e) => { if (e.key === 'Enter') addGrocery(); }, grocText: this.grocText, clearBought,
+      hasGrocOpen: grocOpen > 0, grocOpenLabel: grocOpen + (grocOpen === 1 ? ' grocery' : ' groceries') + ' to buy',
       curListSummary: openCount + ' open · ' + doneCount + ' done',
       addTodo, todoKey: (e) => { if (e.key === 'Enter') addTodo(); },
       todoText: this.todoText, todoDue: this.todoDue,
@@ -1695,7 +1787,10 @@ class Component extends DCLogic {
       rIngrView, rStepsView: openR ? (openR.steps || []).map(t => ({ t })) : [],
       rHasNotes: !!(openR && openR.notes), rNotesView: openR ? openR.notes : '',
       rHasPhoto: !!(openR && openR.photo), rPhotoView: openR ? (openR.photo || '') : '',
-      closeRecipe: () => this.setState({ recipeId: null, importNotice: '' }),
+      closeRecipe: () => this.setState({ recipeId: null, importNotice: '', grocNotice: null }),
+      addToGroceries: () => { if (openR) this.addRecipeToGroceries(openR.id, rServings); },
+      grocButtonLabel: (openR && s.grocBusy === openR.id) ? 'Adding…' : (rServings && rServings !== baseServings ? 'Add to groceries (' + rServings + ' servings)' : 'Add to groceries'),
+      hasGrocNotice: !!(openR && s.grocNotice && s.grocNotice.id === openR.id), grocNotice: (openR && s.grocNotice && s.grocNotice.id === openR.id) ? s.grocNotice.text : '',
       rCanScale: !!baseServings, rServings: rServings || '',
       rServMinus: () => setServings((rServings || 1) - 1), rServPlus: () => setServings((rServings || 1) + 1),
       rIsScaled: !!scaled, rScaleNote: scaled ? ('Scaled from ' + baseServings + ' to ' + rServings + ' servings · lines without an amount are unchanged') : '',

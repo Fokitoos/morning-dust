@@ -4,6 +4,7 @@ of the read-only ICS feeds, recipes, notes and the weight log."""
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from app.schemas.morning_dust import (
     AgendaEvent,
@@ -12,6 +13,7 @@ from app.schemas.morning_dust import (
     EventBulkResult,
     EventNew,
     EventPatch,
+    GroceriesAddResult,
     Note,
     NoteList,
     NoteNew,
@@ -22,6 +24,7 @@ from app.schemas.morning_dust import (
     Todo,
     TodoList,
     TodoNew,
+    TodoListName,
     TodoPatch,
     Weight,
     WeightList,
@@ -74,6 +77,19 @@ def patch_todo(
 @todos.delete("/{todo_id}", status_code=204)
 def delete_todo(todo_id: int, store: TodoStore = Depends(get_todo_store)) -> None:
     store.delete(todo_id)
+
+
+class ClearDoneResult(BaseModel):
+    removed: int
+
+
+@todos.post("/clear-done", response_model=ClearDoneResult)
+def clear_done_todos(
+    list: TodoListName = Query(default="groceries"),
+    store: TodoStore = Depends(get_todo_store),
+) -> ClearDoneResult:
+    """Remove every ticked item from a list — "clear bought" for groceries."""
+    return ClearDoneResult(removed=store.clear_done(list))
 
 
 # ---- calendar events ----
@@ -157,6 +173,32 @@ def scaled_recipe(
     if base is None:
         raise HTTPException(status_code=422, detail="This recipe has no serving count to scale from")
     return scale_ingredients(recipe.ingredients, base, servings)
+
+
+class GroceriesFromRecipe(BaseModel):
+    servings: int | None = Field(default=None, ge=1, le=100)
+
+
+@recipes.post("/{recipe_id}/groceries", response_model=GroceriesAddResult, status_code=201)
+def recipe_to_groceries(
+    recipe_id: int,
+    payload: GroceriesFromRecipe | None = None,
+    store: RecipeStore = Depends(get_recipe_store),
+    todo_store: TodoStore = Depends(get_todo_store),
+) -> GroceriesAddResult:
+    """Put the recipe's ingredient lines on the groceries list, scaled to
+    `servings` when given and the recipe has a serving count. Call it for
+    several recipes to build one shopping list; each line remembers which
+    recipe it came from."""
+    recipe = store.get(recipe_id)
+    lines = recipe.ingredients
+    if payload and payload.servings:
+        base = parse_servings(recipe.servings)
+        if base and base != payload.servings:
+            lines = [i.text for i in scale_ingredients(lines, base, payload.servings).ingredients]
+    if not lines:
+        raise HTTPException(status_code=422, detail="This recipe has no ingredients")
+    return todo_store.add_groceries(lines, recipe.title)
 
 
 @recipes.post("/{recipe_id}/nutrition", response_model=Recipe)

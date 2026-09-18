@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS todos (
     text    TEXT    NOT NULL,
     done    INTEGER NOT NULL DEFAULT 0,
     due     TEXT    NOT NULL DEFAULT '',
-    sort    INTEGER NOT NULL DEFAULT 0
+    sort    INTEGER NOT NULL DEFAULT 0,
+    list    TEXT    NOT NULL DEFAULT 'todo',
+    source  TEXT    NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS local_events (
@@ -105,6 +107,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
     weight_cols = {row[1] for row in conn.execute("PRAGMA table_info(weights)")}
     if "person" not in weight_cols:
         conn.execute("ALTER TABLE weights ADD COLUMN person TEXT NOT NULL DEFAULT 'ermis'")
+    todo_cols = {row[1] for row in conn.execute("PRAGMA table_info(todos)")}
+    if "list" not in todo_cols:
+        conn.execute("ALTER TABLE todos ADD COLUMN list TEXT NOT NULL DEFAULT 'todo'")
+    if "source" not in todo_cols:
+        conn.execute("ALTER TABLE todos ADD COLUMN source TEXT NOT NULL DEFAULT ''")
     recipe_cols = {row[1] for row in conn.execute("PRAGMA table_info(recipes)")}
     if "nutrition" not in recipe_cols:
         conn.execute("ALTER TABLE recipes ADD COLUMN nutrition TEXT NOT NULL DEFAULT ''")
