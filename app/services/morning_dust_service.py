@@ -249,19 +249,14 @@ class RecipeStore:
         title = payload.title.strip()
         if not title:
             raise HTTPException(status_code=422, detail="Recipe title is required")
-        # A nutrition estimate describes one ingredient list at one serving
-        # count; if either changes it's stale, so drop it rather than lie.
-        current = self.get(recipe_id)
-        keep_nutrition = (
-            current.ingredients == payload.ingredients and current.servings == payload.servings
-        )
+        # The nutrition column is deliberately left alone: an estimate costs
+        # tokens, so it persists until the user asks for a re-estimate.
         with db() as conn:
             cur = conn.execute(
                 "UPDATE recipes SET title = ?, tags = ?, servings = ?, time = ?, photo = ?, "
-                "ingredients = ?, steps = ?, notes = ?, nutrition = ?, updated = ? WHERE id = ?",
+                "ingredients = ?, steps = ?, notes = ?, updated = ? WHERE id = ?",
                 (title, json.dumps(payload.tags), payload.servings, payload.time, payload.photo,
                  json.dumps(payload.ingredients), json.dumps(payload.steps), payload.notes,
-                 current.nutrition.model_dump_json() if (keep_nutrition and current.nutrition) else "",
                  _now_ms(), recipe_id),
             )
             if cur.rowcount == 0:

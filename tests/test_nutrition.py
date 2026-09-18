@@ -97,16 +97,16 @@ def test_estimate_endpoint_reports_model_failure(app, client):
     assert "rate limited" in resp.json()["detail"]
 
 
-def test_editing_ingredients_drops_the_stale_estimate(app, client):
-    app.dependency_overrides[get_nutrition_client] = lambda: FakeNutritionClient()
+def test_estimate_persists_across_edits_until_re_estimated(app, client):
+    fake = FakeNutritionClient()
+    app.dependency_overrides[get_nutrition_client] = lambda: fake
     rid = client.post("/api/recipes", json=RECIPE).json()["id"]
     client.post(f"/api/recipes/{rid}/nutrition")
 
-    same = client.put(f"/api/recipes/{rid}", json={**RECIPE, "title": "Renamed"}).json()
-    assert same["nutrition"] is not None
-
-    changed = client.put(f"/api/recipes/{rid}", json={**RECIPE, "ingredients": ["2 kg spinach"]}).json()
-    assert changed["nutrition"] is None
+    edited = client.put(f"/api/recipes/{rid}", json={**RECIPE, "ingredients": ["2 kg spinach"]}).json()
+    assert edited["nutrition"]["calories_kcal"] == 412
+    assert client.get("/api/recipes").json()["items"][0]["nutrition"] is not None
+    assert len(fake.calls) == 1  # opening/editing never re-runs the model
 
 
 def test_scaled_endpoint(client):
