@@ -3,6 +3,8 @@ events, recipes, notes and weight log."""
 
 from pydantic import BaseModel, Field
 
+from app.schemas.nutrition import NutritionInfo
+
 
 # ---- todos (single merged list) ----
 
@@ -82,6 +84,7 @@ class Recipe(BaseModel):
     ingredients: list[str] = Field(default_factory=list)
     steps: list[str] = Field(default_factory=list)
     notes: str = ""
+    nutrition: NutritionInfo | None = None  # per serving; set via POST /{id}/nutrition
     updated: int = 0
 
 

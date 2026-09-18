@@ -69,6 +69,14 @@ MORNING_DUST_DEBUG=true
 Precedence is **command-line flag → environment / `.env` → built-in default**,
 so the flags above override `.env` for a single run without editing anything.
 
+The recipe book's per-serving nutrition estimates are produced by Claude, so
+they need an Anthropic API key in the same file. Without it everything else
+works and the Estimate button says what's missing:
+
+```dotenv
+MORNING_DUST_ANTHROPIC_API_KEY=sk-ant-...
+```
+
 > Changing the port has two knock-on effects: `deploy/open-browser.sh` waits on
 > port 8000, and the systemd unit runs `main.py` with no flags. Update both if
 > you want a different port on the Pi — see below.

@@ -13,6 +13,7 @@ dependencies = [
     "icalendar>=7.1.2",
     "recurring-ical-events>=3.8.2",
     "typer>=0.27.0",
+    "anthropic>=1.6.0",
 ]
 
 [dependency-groups]

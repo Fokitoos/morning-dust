@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS recipes (
     ingredients TEXT    NOT NULL DEFAULT '[]',
     steps       TEXT    NOT NULL DEFAULT '[]',
     notes       TEXT    NOT NULL DEFAULT '',
+    nutrition   TEXT    NOT NULL DEFAULT '',
     updated     INTEGER NOT NULL DEFAULT 0
 );
 
@@ -104,6 +105,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
     weight_cols = {row[1] for row in conn.execute("PRAGMA table_info(weights)")}
     if "person" not in weight_cols:
         conn.execute("ALTER TABLE weights ADD COLUMN person TEXT NOT NULL DEFAULT 'ermis'")
+    recipe_cols = {row[1] for row in conn.execute("PRAGMA table_info(recipes)")}
+    if "nutrition" not in recipe_cols:
+        conn.execute("ALTER TABLE recipes ADD COLUMN nutrition TEXT NOT NULL DEFAULT ''")
 
 
 def reset_for_tests() -> None:
