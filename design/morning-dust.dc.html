@@ -731,6 +731,61 @@ textarea.input { min-height: 90px; resize: vertical; }
           </sc-if>
         </div>
       </sc-if>
+      <sc-if value="{{ rCook }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; align-items: center; gap: var(--space-2); margin: var(--space-4) 0 var(--space-2); flex-wrap: wrap;">
+          <button type="button" class="btn btn-ghost" sc-camel-on-click="{{ exitCookMode }}"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>Back to recipe</button>
+          <span style="margin-left: auto; font-size: 13px; opacity: 0.6;">{{ ckServingsNote }}</span>
+        </div>
+        <div style="margin: 0 0 var(--space-3);">
+          <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent-700);">Cook mode</div>
+          <h1 style="font-size: 30px; margin: 6px 0 0;">{{ ckTitle }}</h1>
+        </div>
+        <sc-if value="{{ ckHasActive }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-3);">
+            <sc-for list="{{ ckActive }}" as="tm" hint-placeholder-count="1">
+              <div class="card elev-sm" style="{{ tm.style }}">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                  <span style="font-family: var(--font-heading); font-size: 40px; line-height: 1; min-width: 120px;">{{ tm.clock }}</span>
+                  <div style="flex: 1; min-width: 140px;">
+                    <div style="font-size: 15px;">{{ tm.label }}</div>
+                    <div style="font-size: 12px; opacity: 0.6;">{{ tm.sub }}</div>
+                  </div>
+                  <sc-if value="{{ tm.running }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn btn-secondary" sc-camel-on-click="{{ tm.plus }}">+1 min</button></sc-if>
+                  <button type="button" class="btn btn-ghost" sc-camel-on-click="{{ tm.dismiss }}">{{ tm.dismissLabel }}</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+          <span style="font-size: 13px; opacity: 0.7; white-space: nowrap;">{{ ckCounter }}</span>
+          <div class="progress" style="flex: 1;"><div style="{{ ckProgressStyle }}"></div></div>
+        </div>
+        <div class="card elev-sm" style="gap: var(--space-3); min-height: 200px; justify-content: center;">
+          <p style="margin: 0; font-size: 28px; line-height: 1.35;">{{ ckStepText }}</p>
+          <sc-if value="{{ ckHasChips }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <sc-for list="{{ ckChips }}" as="ch" hint-placeholder-count="1">
+                <button type="button" class="btn btn-secondary" sc-camel-on-click="{{ ch.start }}" style="font-size: 16px; padding: 10px 16px;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Start {{ ch.label }} timer</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: var(--space-3);">
+          <button type="button" class="btn btn-secondary" sc-camel-on-click="{{ ckPrev }}" style="min-height: 60px; font-size: 18px; justify-content: center;"><svg width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>Previous</button>
+          <button type="button" class="btn btn-primary" sc-camel-on-click="{{ ckNext }}" style="min-height: 60px; font-size: 18px; justify-content: center;">{{ ckNextLabel }}<svg width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+        </div>
+        <div style="margin-top: var(--space-3);"><button type="button" class="btn btn-ghost" sc-camel-on-click="{{ ckToggleIngr }}">{{ ckIngrLabel }}</button></div>
+        <sc-if value="{{ ckShowIngr }}" hint-placeholder-val="{{ false }}">
+          <div class="card elev-sm" style="margin-top: var(--space-2);">
+            <div class="card-kicker">Ingredients</div>
+            <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 17px;">
+              <sc-for list="{{ ckIngr }}" as="ci" hint-placeholder-count="5"><li>{{ ci.t }}</li></sc-for>
+            </ul>
+          </div>
+        </sc-if>
+        <p style="font-size: 12px; opacity: 0.5; margin-top: var(--space-3);">{{ ckWakeNote }}</p>
+      </sc-if>
       <sc-if value="{{ rDetail }}" hint-placeholder-val="{{ false }}">
         <div style="margin: var(--space-4) 0 var(--space-2);"><button type="button" class="btn btn-ghost" sc-camel-on-click="{{ closeRecipe }}"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>All recipes</button></div>
         <sc-if value="{{ hasImportNotice }}" hint-placeholder-val="{{ false }}">
@@ -827,7 +882,8 @@ textarea.input { min-height: 90px; resize: vertical; }
               </div>
             </sc-if>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-primary" sc-camel-on-click="{{ addToGroceries }}"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>{{ grocButtonLabel }}</button>
+              <sc-if value="{{ rHasSteps }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn btn-primary" sc-camel-on-click="{{ startCooking }}"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7z"></path></svg>Start cooking</button></sc-if>
+              <button type="button" class="btn btn-secondary" sc-camel-on-click="{{ addToGroceries }}"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>{{ grocButtonLabel }}</button>
               <button type="button" class="btn btn-secondary" sc-camel-on-click="{{ editRecipe }}">Edit recipe</button>
               <button type="button" class="btn btn-ghost" sc-camel-on-click="{{ deleteRecipe }}">Delete</button>
             </div>
@@ -986,6 +1042,7 @@ class Component extends DCLogic {
       pizzaCalc: false, pz: { count: 2, hMin: 8, hMax: 24, yeast: 'dry' }, pizzaResult: null, pizzaFailed: false,
       recipeImport: false, importBusy: false, importSlow: false, importError: '', importNotice: '',
       rServ: null, rScaled: null, nutBusy: null, nutError: null, grocBusy: null, grocNotice: null,
+      cook: null, cookTimers: [], cookNow: 0, wakeLocked: false,
       events: data.events || [], todos: data.todos || [], recipes: data.recipes || [], notes: data.notes || [], weights: data.weights || [],
       weather: Component.validWeather(data.weather), commute: data.commute || null, feedStatus: '',
       sync: { state: 'loading', lastOk: cache ? (cache.savedAt || 0) : 0, pending: 0, sample: !cache },
@@ -1008,6 +1065,7 @@ class Component extends DCLogic {
   componentWillUnmount() {
     clearInterval(this.timer);
     clearTimeout(this.importSlowTimer);
+    this.exitCookMode();
     Object.keys(this.noteTimers).forEach(k => clearTimeout(this.noteTimers[k]));
   }
 
@@ -1145,6 +1203,66 @@ class Component extends DCLogic {
     return this.get('/api/recipes/' + id + '/scaled?servings=' + n)
       .then(d => { if (this.state.rServ && this.state.rServ.id === id && this.state.rServ.n === n) this.setState({ rScaled: { id, n, data: d } }); })
       .catch(() => {});
+  }
+  // ---------- cook mode ----------
+  /** Full-screen step-by-step view. The step list with detected timers comes
+      from the server (app/services/cook_mode_service.py); this side runs the
+      countdowns, keeps the screen awake and beeps when a timer ends. */
+  enterCookMode(id, servings) {
+    const q = servings ? '?servings=' + servings : '';
+    return this.get('/api/recipes/' + id + '/cook' + q)
+      .then(d => {
+        this.setState({ cook: { id, step: 0, data: d, showIngr: false }, cookTimers: [], cookNow: Date.now() });
+        clearInterval(this.cookTick);
+        this.cookTick = setInterval(() => this.tickCook(), 1000);
+        this.requestWakeLock();
+        if (!this.onVisible) {
+          this.onVisible = () => { if (document.visibilityState === 'visible' && this.state.cook) this.requestWakeLock(); };
+          document.addEventListener('visibilitychange', this.onVisible);
+        }
+      })
+      .catch(() => this.setState({ grocNotice: { id, text: "Couldn't load cook mode — check the connection and try again." } }));
+  }
+  exitCookMode() {
+    clearInterval(this.cookTick);
+    if (this.onVisible) { document.removeEventListener('visibilitychange', this.onVisible); this.onVisible = null; }
+    if (this.wakeLock) { try { this.wakeLock.release(); } catch (e) {} this.wakeLock = null; }
+    if (this.state.cook) this.setState({ cook: null, cookTimers: [], wakeLocked: false });
+  }
+  requestWakeLock() {
+    if (!navigator.wakeLock || this.wakeLock) return;
+    navigator.wakeLock.request('screen')
+      .then(lock => { this.wakeLock = lock; this.setState({ wakeLocked: true }); lock.addEventListener('release', () => { this.wakeLock = null; this.setState({ wakeLocked: false }); }); })
+      .catch(() => this.setState({ wakeLocked: false }));
+  }
+  tickCook() {
+    const now = Date.now();
+    let fired = false;
+    const timers = this.state.cookTimers.map(t => {
+      if (!t.fired && t.endAt <= now) { fired = true; return Object.assign({}, t, { fired: true }); }
+      return t;
+    });
+    this.setState({ cookNow: now, cookTimers: timers });
+    if (fired) this.alarm();
+  }
+  startCookTimer(label, seconds, stepIdx) {
+    // Create the audio context on this click, when the browser allows it.
+    try { if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (this.audioCtx.state === 'suspended') this.audioCtx.resume(); } catch (e) {}
+    const t = { key: Component.uid(), label, seconds, stepIdx, endAt: Date.now() + seconds * 1000, fired: false };
+    this.setState({ cookTimers: [...this.state.cookTimers, t], cookNow: Date.now() });
+  }
+  alarm() {
+    try { if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]); } catch (e) {}
+    const ctx = this.audioCtx; if (!ctx) return;
+    try {
+      [0, 0.35, 0.7, 1.05].forEach(at => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+        const t0 = ctx.currentTime + at;
+        g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.4, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+        o.start(t0); o.stop(t0 + 0.3);
+      });
+    } catch (e) {}
   }
   /** Put a recipe's ingredient lines (at the chosen serving count) on the
       groceries list. Several recipes stack; identical open lines are skipped. */
@@ -1487,10 +1605,11 @@ class Component extends DCLogic {
 
     // ---- recipes ----
     const openR = s.recipes.find(r => r.id === s.recipeId) || null;
-    const rEditing = s.editing, rDetail = !rEditing && !!openR,
-      rPizza = !rEditing && !openR && s.pizzaCalc,
-      rImport = !rEditing && !openR && !s.pizzaCalc && s.recipeImport,
-      rBrowse = !rEditing && !openR && !s.pizzaCalc && !s.recipeImport;
+    const rCook = !!s.cook;
+    const rEditing = s.editing && !rCook, rDetail = !rCook && !rEditing && !!openR,
+      rPizza = !rCook && !rEditing && !openR && s.pizzaCalc,
+      rImport = !rCook && !rEditing && !openR && !s.pizzaCalc && s.recipeImport,
+      rBrowse = !rCook && !rEditing && !openR && !s.pizzaCalc && !s.recipeImport;
     const baseServings = openR ? (parseInt((openR.servings || '').match(/\d+/) || '', 10) || null) : null;
     const rServings = (openR && s.rServ && s.rServ.id === openR.id) ? s.rServ.n : baseServings;
     const scaled = (openR && s.rScaled && s.rScaled.id === openR.id && s.rScaled.n === rServings && rServings !== baseServings) ? s.rScaled.data : null;
@@ -1503,6 +1622,24 @@ class Component extends DCLogic {
     const nutErr = (openR && s.nutError && s.nutError.id === openR.id) ? s.nutError.text : '';
     const fmtAmt = (v, unit) => (v >= 100 ? Math.round(v) : v >= 10 ? Math.round(v * 10) / 10 : Math.round(v * 100) / 100) + ' ' + unit;
     const rMeta = (r) => [r.servings ? r.servings + (/^\d+$/.test(r.servings) ? ' servings' : '') : null, r.time || null].filter(Boolean).join('  ·  ');
+    // ---- cook mode view ----
+    const ck = s.cook, ckData = ck ? ck.data : null;
+    const ckSteps = ckData ? ckData.steps : [];
+    const ckStep = ckSteps[ck ? ck.step : 0] || null;
+    const clock = (ms) => {
+      const total = Math.max(0, Math.round(ms / 1000)), h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), sec = total % 60;
+      const two = (n) => (n < 10 ? '0' : '') + n;
+      return (h ? h + ':' + two(m) : String(m)) + ':' + two(sec);
+    };
+    const ckActive = s.cookTimers.map(t => ({
+      clock: t.fired ? 'Done' : clock(t.endAt - s.cookNow),
+      label: t.label + ' timer', sub: 'Step ' + (t.stepIdx + 1) + (t.fired ? ' — time’s up' : ''),
+      running: !t.fired, dismissLabel: t.fired ? 'Dismiss' : 'Cancel',
+      style: t.fired ? 'background: var(--color-accent-2-100); border-color: var(--color-accent-2);' : '',
+      plus: () => this.setState({ cookTimers: this.state.cookTimers.map(x => x.key === t.key ? Object.assign({}, x, { endAt: x.endAt + 60000, fired: false }) : x) }),
+      dismiss: () => this.setState({ cookTimers: this.state.cookTimers.filter(x => x.key !== t.key) }),
+    }));
+    const ckGo = (n) => { if (!ck) return; const i = Math.max(0, Math.min(ckSteps.length - 1, n)); this.setState({ cook: Object.assign({}, ck, { step: i }) }); };
     const recipeCards = s.recipes.map(r => ({
       kicker: (r.tags && r.tags[0]) || 'recipe', title: r.title,
       snippet: (r.ingredients || []).slice(0, 3).join(' · '),
@@ -1756,7 +1893,24 @@ class Component extends DCLogic {
       curListSummary: openCount + ' open · ' + doneCount + ' done',
       addTodo, todoKey: (e) => { if (e.key === 'Enter') addTodo(); },
       todoText: this.todoText, todoDue: this.todoDue,
-      rBrowse, rDetail, rEditing, rPizza, rImport,
+      rBrowse, rDetail, rEditing, rPizza, rImport, rCook,
+      rHasSteps: !!(openR && (openR.steps || []).length),
+      startCooking: () => { if (openR) this.enterCookMode(openR.id, rServings); },
+      exitCookMode: () => this.exitCookMode(),
+      ckTitle: ckData ? ckData.title : '',
+      ckServingsNote: ckData && ckData.servings ? (ckData.servings + ' servings') : '',
+      ckCounter: ck ? ('Step ' + (ck.step + 1) + ' of ' + ckSteps.length) : '',
+      ckProgressStyle: 'height: 100%; border-radius: 999px; background: var(--color-accent-700); width: ' + (ck && ckSteps.length ? Math.round((ck.step + 1) / ckSteps.length * 100) : 0) + '%;',
+      ckStepText: ckStep ? ckStep.text : '',
+      ckHasChips: !!(ckStep && ckStep.timers.length), ckChips: ckStep ? ckStep.timers.map(t => ({ label: t.label, start: () => this.startCookTimer(t.label, t.seconds, ckStep.index) })) : [],
+      ckHasActive: ckActive.length > 0, ckActive,
+      ckPrev: () => ckGo(ck ? ck.step - 1 : 0),
+      ckNext: () => { if (ck && ck.step >= ckSteps.length - 1) this.exitCookMode(); else ckGo(ck ? ck.step + 1 : 0); },
+      ckNextLabel: (ck && ck.step >= ckSteps.length - 1) ? 'Finish' : 'Next',
+      ckToggleIngr: () => { if (ck) this.setState({ cook: Object.assign({}, ck, { showIngr: !ck.showIngr }) }); },
+      ckIngrLabel: (ck && ck.showIngr) ? 'Hide ingredients' : 'Show ingredients',
+      ckShowIngr: !!(ck && ck.showIngr), ckIngr: ckData ? ckData.ingredients.map(t => ({ t })) : [],
+      ckWakeNote: s.wakeLocked ? 'Screen will stay on while you cook.' : (navigator.wakeLock ? 'Screen wake lock not active — tap anywhere to re-enable.' : 'This browser can’t keep the screen awake; timers still run while the page is open.'),
       openPizzaCalc: () => { this.setState({ pizzaCalc: true, recipeId: null, editing: false }); this.fetchPizzaCalc(); },
       closePizzaCalc: () => this.setState({ pizzaCalc: false }),
       openRecipeImport: () => this.setState({ recipeImport: true, recipeId: null, editing: false, importError: '', importNotice: '' }),

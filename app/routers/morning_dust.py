@@ -30,6 +30,7 @@ from app.schemas.morning_dust import (
     WeightList,
     WeightNew,
 )
+from app.schemas.cook_mode import CookMode
 from app.schemas.nutrition import ScaledRecipe
 from app.schemas.recipe_import import RecipeImportRequest, RecipeImportResult
 from app.services.morning_dust_service import (
@@ -44,6 +45,7 @@ from app.services.morning_dust_service import (
     get_todo_store,
     get_weight_store,
 )
+from app.services.cook_mode_service import cook_steps
 from app.services.nutrition_service import NutritionService, get_nutrition_service
 from app.services.recipe_import_service import RecipeImportService, get_recipe_import_service
 from app.services.recipe_scale_service import parse_servings, scale_ingredients
@@ -173,6 +175,25 @@ def scaled_recipe(
     if base is None:
         raise HTTPException(status_code=422, detail="This recipe has no serving count to scale from")
     return scale_ingredients(recipe.ingredients, base, servings)
+
+
+@recipes.get("/{recipe_id}/cook", response_model=CookMode)
+def cook_mode(
+    recipe_id: int,
+    servings: int | None = Query(default=None, ge=1, le=100),
+    store: RecipeStore = Depends(get_recipe_store),
+) -> CookMode:
+    """The recipe laid out for cooking: ingredients (scaled when asked) and
+    steps with any durations in the text turned into tappable timers."""
+    recipe = store.get(recipe_id)
+    base = parse_servings(recipe.servings)
+    ingredients = recipe.ingredients
+    if servings and base and servings != base:
+        ingredients = [i.text for i in scale_ingredients(ingredients, base, servings).ingredients]
+    return CookMode(
+        recipe_id=recipe.id, title=recipe.title, servings=servings or base,
+        ingredients=ingredients, steps=cook_steps(recipe.steps),
+    )
 
 
 class GroceriesFromRecipe(BaseModel):
