@@ -16,6 +16,7 @@ from app.schemas.morning_dust import (
     EventBulkResult,
     EventNew,
     EventPatch,
+    GroceriesAddResult,
     Note,
     NoteNew,
     Recipe,
@@ -53,14 +54,26 @@ def _nutrition(raw: str) -> NutritionInfo | None:
 
 # ---- todos ----
 
+def _todo(r) -> Todo:
+    return Todo(id=r["id"], text=r["text"], done=bool(r["done"]), due=r["due"],
+                list=r["list"], source=r["source"])
+
+
+_TODO_COLS = "id, text, done, due, list, source"
+
+
+def _norm(text: str) -> str:
+    return " ".join(text.lower().split())
+
+
 class TodoStore:
     def list(self) -> list[Todo]:
         with db() as conn:
             rows = conn.execute(
-                "SELECT id, text, done, due FROM todos ORDER BY done, "
+                f"SELECT {_TODO_COLS} FROM todos ORDER BY done, "
                 "CASE WHEN due = '' THEN 1 ELSE 0 END, due, sort, id"
             ).fetchall()
-        return [Todo(id=r["id"], text=r["text"], done=bool(r["done"]), due=r["due"]) for r in rows]
+        return [_todo(r) for r in rows]
 
     def create(self, payload: TodoNew) -> Todo:
         text = payload.text.strip()
@@ -68,12 +81,48 @@ class TodoStore:
             raise HTTPException(status_code=422, detail="Todo text is required")
         with db() as conn:
             cur = conn.execute(
-                "INSERT INTO todos (text, done, due, sort) VALUES (?, ?, ?, "
-                "COALESCE((SELECT MAX(sort) + 1 FROM todos), 0))",
-                (text, int(payload.done), payload.due),
+                "INSERT INTO todos (text, done, due, sort, list, source) VALUES (?, ?, ?, "
+                "COALESCE((SELECT MAX(sort) + 1 FROM todos), 0), ?, ?)",
+                (text, int(payload.done), payload.due, payload.list, payload.source.strip()),
             )
             new_id = int(cur.lastrowid)
-        return Todo(id=new_id, text=text, done=payload.done, due=payload.due)
+        return Todo(id=new_id, text=text, done=payload.done, due=payload.due,
+                    list=payload.list, source=payload.source.strip())
+
+    def add_groceries(self, lines: list[str], source: str) -> GroceriesAddResult:
+        """Append ingredient lines to the groceries list. A line that's already
+        open on the list (same text, ignoring case/spacing) is skipped, so
+        adding the same recipe twice doesn't double it up — while two
+        different recipes both wanting olive oil still get two lines, each
+        tagged with its recipe."""
+        source = source.strip()
+        added: list[Todo] = []
+        skipped = 0
+        with db() as conn:
+            open_rows = conn.execute(
+                "SELECT text FROM todos WHERE list = 'groceries' AND done = 0"
+            ).fetchall()
+            present = {_norm(r["text"]) for r in open_rows}
+            for raw in lines:
+                text = raw.strip()
+                if not text:
+                    continue
+                if _norm(text) in present:
+                    skipped += 1
+                    continue
+                cur = conn.execute(
+                    "INSERT INTO todos (text, done, due, sort, list, source) VALUES (?, 0, '', "
+                    "COALESCE((SELECT MAX(sort) + 1 FROM todos), 0), 'groceries', ?)",
+                    (text, source),
+                )
+                present.add(_norm(text))
+                added.append(Todo(id=int(cur.lastrowid), text=text, list="groceries", source=source))
+        return GroceriesAddResult(added=added, skipped=skipped, source=source)
+
+    def clear_done(self, list_name: str) -> int:
+        with db() as conn:
+            cur = conn.execute("DELETE FROM todos WHERE list = ? AND done = 1", (list_name,))
+            return cur.rowcount
 
     def update(self, todo_id: int, payload: TodoPatch) -> Todo:
         sets, args = [], []
@@ -89,10 +138,10 @@ class TodoStore:
         with db() as conn:
             if sets:
                 conn.execute(f"UPDATE todos SET {', '.join(sets)} WHERE id = ?", (*args, todo_id))
-            row = conn.execute("SELECT id, text, done, due FROM todos WHERE id = ?", (todo_id,)).fetchone()
+            row = conn.execute(f"SELECT {_TODO_COLS} FROM todos WHERE id = ?", (todo_id,)).fetchone()
         if row is None:
             raise HTTPException(status_code=404, detail="Todo not found")
-        return Todo(id=row["id"], text=row["text"], done=bool(row["done"]), due=row["due"])
+        return _todo(row)
 
     def delete(self, todo_id: int) -> None:
         with db() as conn:

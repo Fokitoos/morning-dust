@@ -4,6 +4,7 @@ of the read-only ICS feeds, recipes, notes and the weight log."""
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from app.schemas.morning_dust import (
     AgendaEvent,
@@ -12,6 +13,7 @@ from app.schemas.morning_dust import (
     EventBulkResult,
     EventNew,
     EventPatch,
+    GroceriesAddResult,
     Note,
     NoteList,
     NoteNew,
@@ -22,11 +24,13 @@ from app.schemas.morning_dust import (
     Todo,
     TodoList,
     TodoNew,
+    TodoListName,
     TodoPatch,
     Weight,
     WeightList,
     WeightNew,
 )
+from app.schemas.cook_mode import CookMode
 from app.schemas.nutrition import ScaledRecipe
 from app.schemas.recipe_import import RecipeImportRequest, RecipeImportResult
 from app.services.morning_dust_service import (
@@ -41,6 +45,7 @@ from app.services.morning_dust_service import (
     get_todo_store,
     get_weight_store,
 )
+from app.services.cook_mode_service import cook_steps
 from app.services.nutrition_service import NutritionService, get_nutrition_service
 from app.services.recipe_import_service import RecipeImportService, get_recipe_import_service
 from app.services.recipe_scale_service import parse_servings, scale_ingredients
@@ -74,6 +79,19 @@ def patch_todo(
 @todos.delete("/{todo_id}", status_code=204)
 def delete_todo(todo_id: int, store: TodoStore = Depends(get_todo_store)) -> None:
     store.delete(todo_id)
+
+
+class ClearDoneResult(BaseModel):
+    removed: int
+
+
+@todos.post("/clear-done", response_model=ClearDoneResult)
+def clear_done_todos(
+    list: TodoListName = Query(default="groceries"),
+    store: TodoStore = Depends(get_todo_store),
+) -> ClearDoneResult:
+    """Remove every ticked item from a list — "clear bought" for groceries."""
+    return ClearDoneResult(removed=store.clear_done(list))
 
 
 # ---- calendar events ----
@@ -157,6 +175,51 @@ def scaled_recipe(
     if base is None:
         raise HTTPException(status_code=422, detail="This recipe has no serving count to scale from")
     return scale_ingredients(recipe.ingredients, base, servings)
+
+
+@recipes.get("/{recipe_id}/cook", response_model=CookMode)
+def cook_mode(
+    recipe_id: int,
+    servings: int | None = Query(default=None, ge=1, le=100),
+    store: RecipeStore = Depends(get_recipe_store),
+) -> CookMode:
+    """The recipe laid out for cooking: ingredients (scaled when asked) and
+    steps with any durations in the text turned into tappable timers."""
+    recipe = store.get(recipe_id)
+    base = parse_servings(recipe.servings)
+    ingredients = recipe.ingredients
+    if servings and base and servings != base:
+        ingredients = [i.text for i in scale_ingredients(ingredients, base, servings).ingredients]
+    return CookMode(
+        recipe_id=recipe.id, title=recipe.title, servings=servings or base,
+        ingredients=ingredients, steps=cook_steps(recipe.steps),
+    )
+
+
+class GroceriesFromRecipe(BaseModel):
+    servings: int | None = Field(default=None, ge=1, le=100)
+
+
+@recipes.post("/{recipe_id}/groceries", response_model=GroceriesAddResult, status_code=201)
+def recipe_to_groceries(
+    recipe_id: int,
+    payload: GroceriesFromRecipe | None = None,
+    store: RecipeStore = Depends(get_recipe_store),
+    todo_store: TodoStore = Depends(get_todo_store),
+) -> GroceriesAddResult:
+    """Put the recipe's ingredient lines on the groceries list, scaled to
+    `servings` when given and the recipe has a serving count. Call it for
+    several recipes to build one shopping list; each line remembers which
+    recipe it came from."""
+    recipe = store.get(recipe_id)
+    lines = recipe.ingredients
+    if payload and payload.servings:
+        base = parse_servings(recipe.servings)
+        if base and base != payload.servings:
+            lines = [i.text for i in scale_ingredients(lines, base, payload.servings).ingredients]
+    if not lines:
+        raise HTTPException(status_code=422, detail="This recipe has no ingredients")
+    return todo_store.add_groceries(lines, recipe.title)
 
 
 @recipes.post("/{recipe_id}/nutrition", response_model=Recipe)

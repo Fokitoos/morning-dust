@@ -1,24 +1,39 @@
 """Schemas for the morning-dust dashboard API — the merged todo list, local calendar
 events, recipes, notes and weight log."""
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.schemas.nutrition import NutritionInfo
 
 
-# ---- todos (single merged list) ----
+# ---- todos: one table, two lists ("todo" and "groceries") ----
+
+TodoListName = Literal["todo", "groceries"]
+
 
 class Todo(BaseModel):
     id: int
     text: str
     done: bool = False
     due: str = ""  # "" or YYYY-MM-DD
+    list: TodoListName = "todo"
+    source: str = ""  # for groceries: the recipe the line came from
 
 
 class TodoNew(BaseModel):
     text: str
     done: bool = False
     due: str = ""
+    list: TodoListName = "todo"
+    source: str = ""
+
+
+class GroceriesAddResult(BaseModel):
+    added: list[Todo]
+    skipped: int  # lines already open on the list
+    source: str
 
 
 class TodoPatch(BaseModel):
