@@ -217,3 +217,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 data/
+
+# Node (frontend vendoring only; the built files in app/static/vendor are committed)
+node_modules/
