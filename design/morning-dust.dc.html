@@ -426,7 +426,13 @@ textarea.input { min-height: 90px; resize: vertical; }
     .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; font-weight: 500; }
     h1, h2, h3 { letter-spacing: -0.025em; }
     h1[data-scramble] { min-height: 1.12em; }
-    .nav { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-divider) !important; }
+    /* Pinned to the top while the page scrolls; the tint keeps the labels
+       readable over whatever content passes underneath. */
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-divider) !important;
+    }
     .nav a[aria-current='page'] { text-shadow: 0 0 14px color-mix(in srgb, var(--color-accent) 70%, transparent); }
     .nav-brand { font-family: var(--font-mono) !important; font-weight: 500 !important; letter-spacing: -0.02em; }
     .btn-primary { box-shadow: 0 0 18px -4px color-mix(in srgb, var(--color-accent) 60%, transparent); }
@@ -1581,7 +1587,18 @@ class Component extends DCLogic {
     const hr = now.getHours();
     const part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
     const greeting = 'Good ' + part + (name ? ', ' + name : '') + '.';
-    const goTab = (t) => (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ tab: t }); };
+    // A tab click always lands on that tab's home view: any open recipe, edit
+    // form, pizza calculator, import form or cook session is closed, the
+    // calendar returns to this week, and the page scrolls back to the top.
+    const goTab = (t) => (e) => {
+      if (e && e.preventDefault) e.preventDefault();
+      this.exitCookMode();
+      this.setState({
+        tab: t, weekOffset: 0, recipeId: null, editing: false, draft: null, photoDraft: null,
+        pizzaCalc: false, recipeImport: false, importError: '', importNotice: '', grocNotice: null,
+      });
+      window.scrollTo(0, 0);
+    };
     const navTabs = [['today', 'Today'], ['calendar', 'Calendar'], ['groceries', 'Groceries'], ['recipes', 'Recipes'], ['notes', 'Notes'], ['ermis', 'Ermis']]
       .map(([id, label]) => ({ label, cur: s.tab === id ? 'page' : null, go: goTab(id) }));
 
