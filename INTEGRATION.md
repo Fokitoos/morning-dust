@@ -118,6 +118,30 @@ both files. The round trip is lossless — only the `<x-dc>…</script>` region 
 exchanged, and the bundle's shell, asset manifest and font/runtime UUID
 placeholders are left untouched.
 
+### Vendored browser libraries
+
+The visual effects come from three npm libraries, pre-bundled into
+`app/static/vendor/` and loaded by the component at runtime:
+
+| File | Library | Used for |
+|---|---|---|
+| `paper-shaders.js` | `@paper-design/shaders` | animated mesh-gradient backdrop (`.fx-bg`), drifts with the pointer |
+| `number-flow.js` | `number-flow` | rolling numbers: any element with `data-flow="{{ value }}"` (optional `data-flow-decimals`, `data-flow-suffix`) |
+| `gsap-scramble.js` | `gsap` + ScrambleTextPlugin | decoding headings: any element with `data-scramble="{{ text }}"` |
+
+Elements with `data-flow` / `data-scramble` must have **no template children**;
+`runFx()` owns their contents. Everything degrades gracefully: no WebGL means
+a CSS gradient, a failed script means plain text, and
+`prefers-reduced-motion` turns the motion off.
+
+The bundled files are committed, so deploys don't need Node. To change a
+version, edit `package.json`, then:
+
+```bash
+npm install
+npm run vendor   # scripts/vendor.mjs -> app/static/vendor/*.js
+```
+
 `design/morning-dust.dc.html` is also the file to paste into the Claude Design
 project (**hearth**) when you want that project to catch up with code-side
 edits, and the file to overwrite with a fresh export when the design project is

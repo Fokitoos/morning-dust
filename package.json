@@ -1,0 +1,16 @@
+{
+  "name": "morning-dust-frontend-vendor",
+  "private": true,
+  "description": "Browser libraries for app/static/index.html. The app has no frontend build: `npm run vendor` bundles each library into app/static/vendor/, and those files are committed so deploys don't need Node.",
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs"
+  },
+  "dependencies": {
+    "@paper-design/shaders": "0.0.82",
+    "gsap": "3.15.0",
+    "number-flow": "0.6.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
