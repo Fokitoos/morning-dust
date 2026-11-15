@@ -1025,46 +1025,6 @@ textarea.input { min-height: 90px; resize: vertical; }
       </div>
     </sc-if>
 
-    <sc-if value="{{ isAshley }}" hint-placeholder-val="{{ false }}">
-      <div style="margin: var(--space-6) 0 var(--space-3);">
-        <div class="eyebrow" style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-on-bg-accent);">Logbook</div>
-        <h1 style="font-size: 34px; margin: 6px 0 0;" data-scramble="Ashley's weight curve"></h1>
-      </div>
-      <div class="split split-wide">
-        <div class="card elev-sm">
-          <div class="card-kicker">The curve</div>
-          <sc-if value="{{ aHasWeights }}" hint-placeholder-val="{{ true }}">
-            {{ aChart }}
-          </sc-if>
-          <sc-if value="{{ aNoWeights }}" hint-placeholder-val="{{ false }}">
-            <p class="card-body">Log the first weigh-in and the curve starts here.</p>
-          </sc-if>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-          <div class="card elev-sm" style="gap: var(--space-2);">
-            <div class="card-kicker">New weigh-in</div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <input class="input" type="date" ref="{{ aDate }}" sc-camel-default-value="{{ todayYmd }}" style="flex: 1; min-width: 150px;">
-              <input class="input" type="number" sc-camel-input-mode="numeric" placeholder="grams — e.g. 3450" ref="{{ aGrams }}" sc-camel-on-key-down="{{ weightKeyA }}" style="flex: 1; min-width: 150px;">
-            </div>
-            <button type="button" class="btn btn-primary btn-block" sc-camel-on-click="{{ addWeightA }}" style="margin-top: 4px;">Log weight</button>
-          </div>
-          <div class="card elev-sm" style="gap: 4px;">
-            <div class="card-kicker">Entries</div>
-            <sc-for list="{{ aEntries }}" as="w" hint-placeholder-count="4">
-              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--color-divider); font-size: 14px;">
-                <span style="opacity: 0.6; width: 64px; flex: none;">{{ w.date }}</span>
-                <span style="font-family: var(--font-heading);">{{ w.kg }}</span>
-                <sc-if value="{{ w.hasDelta }}" hint-placeholder-val="{{ false }}"><span class="tag {{ w.deltaClass }}">{{ w.delta }}</span></sc-if>
-                <button type="button" sc-camel-on-click="{{ w.remove }}" aria-label="Delete entry" style="margin-left: auto; background: none; border: none; cursor: pointer; color: var(--color-text); opacity: 0.35; padding: 10px; line-height: 1;" style-hover="opacity: 0.9;"><svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
-              </div>
-            </sc-for>
-            <sc-if value="{{ aNoWeights }}" hint-placeholder-val="{{ false }}"><p class="card-body">Nothing logged yet.</p></sc-if>
-          </div>
-        </div>
-      </div>
-    </sc-if>
-
   </main>
   <footer style="max-width: 1160px; width: 100%; margin: 0 auto; box-sizing: border-box; padding: var(--space-3) var(--space-4); font-size: 12px; opacity: 0.45;">{{ footerNote }}</footer>
 </div>
@@ -1091,7 +1051,7 @@ class Component extends DCLogic {
     this.idMap = {};      // temp id → server id, for replaying queued writes
     this.noteTimers = {}; // debounce timers for sticky-note text
     this.grocTimers = {}; // debounce timers for grocery line edits
-    ['evTitle', 'evDate', 'evTime', 'icsFile', 'grocText', 'rfTitle', 'rfTags', 'rfServ', 'rfTime', 'rfIngr', 'rfSteps', 'rfNotes', 'photoFile', 'riUrl', 'riText', 'wDate', 'wGrams', 'aDate', 'aGrams'].forEach(k => { this[k] = React.createRef(); });
+    ['evTitle', 'evDate', 'evTime', 'icsFile', 'grocText', 'rfTitle', 'rfTags', 'rfServ', 'rfTime', 'rfIngr', 'rfSteps', 'rfNotes', 'photoFile', 'riUrl', 'riText', 'wDate', 'wGrams'].forEach(k => { this[k] = React.createRef(); });
   }
 
   // ---------- lifecycle ----------
@@ -1622,7 +1582,7 @@ class Component extends DCLogic {
     const part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
     const greeting = 'Good ' + part + (name ? ', ' + name : '') + '.';
     const goTab = (t) => (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ tab: t }); };
-    const navTabs = [['today', 'Today'], ['calendar', 'Calendar'], ['groceries', 'Groceries'], ['recipes', 'Recipes'], ['notes', 'Notes'], ['ermis', 'Ermis'], ['ashley', 'Ashley']]
+    const navTabs = [['today', 'Today'], ['calendar', 'Calendar'], ['groceries', 'Groceries'], ['recipes', 'Recipes'], ['notes', 'Notes'], ['ermis', 'Ermis']]
       .map(([id, label]) => ({ label, cur: s.tab === id ? 'page' : null, go: goTab(id) }));
 
     // ---- sync state ----
@@ -1939,7 +1899,6 @@ class Component extends DCLogic {
       return { ws, entries, chart, sparkPoints, sparkLastX, sparkLastY, latest, prev, diff, add };
     };
     const we = weightCurve('ermis', this.wDate, this.wGrams);
-    const wa = weightCurve('ashley', this.aDate, this.aGrams);
 
     // ---- pizza calculator ----
     // The dough math and method text are computed server-side
@@ -1985,7 +1944,7 @@ class Component extends DCLogic {
       navTabs, greeting,
       todayLong: now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
       todayYmd: todayY,
-      isToday: s.tab === 'today', isCalendar: s.tab === 'calendar', isGroceries: s.tab === 'groceries', isRecipes: s.tab === 'recipes', isNotes: s.tab === 'notes', isErmis: s.tab === 'ermis', isAshley: s.tab === 'ashley',
+      isToday: s.tab === 'today', isCalendar: s.tab === 'calendar', isGroceries: s.tab === 'groceries', isRecipes: s.tab === 'recipes', isNotes: s.tab === 'notes', isErmis: s.tab === 'ermis',
       goCalendar: goTab('calendar'), goGroceries: goTab('groceries'), goRecipes: goTab('recipes'), goNotes: goTab('notes'), goErmis: goTab('ermis'),
       syncShow, syncLabel, syncClass, doSync: () => this.pull(),
       footerNote: sy.state === 'offline'
@@ -2109,10 +2068,6 @@ class Component extends DCLogic {
       wHasDelta: !!we.prev, wDeltaLabel: (we.diff >= 0 ? '+' : '−') + Math.abs(we.diff) + ' g since last', wDeltaClass: we.diff >= 0 ? 'tag-accent-2' : 'tag-accent',
       addWeight: we.add, weightKey: (e) => { if (e.key === 'Enter') we.add(); },
       wDate: this.wDate, wGrams: this.wGrams,
-      aHasWeights: wa.ws.length > 0, aNoWeights: wa.ws.length === 0,
-      aChart: wa.chart, aEntries: wa.entries,
-      addWeightA: wa.add, weightKeyA: (e) => { if (e.key === 'Enter') wa.add(); },
-      aDate: this.aDate, aGrams: this.aGrams,
     };
   }
 }
